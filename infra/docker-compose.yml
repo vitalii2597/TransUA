@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-transua}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-transua}
+      POSTGRES_DB: ${POSTGRES_DB:-transua}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+# optional redis service (uncomment to enable)
+#  redis:
+#    image: redis:7
+#    ports:
+#      - "6379:6379"
+
+volumes:
+  db-data:
+    driver: local
