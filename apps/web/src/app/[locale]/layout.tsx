@@ -3,6 +3,8 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import '../globals.css';
+import { Inter } from 'next/font/google';
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
 import Navbar from '@/components/layout/Navbar';
 import CookieBanner from '@/components/CookieBanner';
 import { ToastProvider } from '@/components/Toast';
@@ -45,7 +47,7 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={inter.className}>
       <head>
         <meta name="description" content={metadata.description ?? ''} />
         <meta property="og:title" content={(metadata.title as string) ?? 'TransUA'} />
