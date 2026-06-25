@@ -47,9 +47,9 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
-        <meta name="description" content={metadata.description} />
+        <meta name="description" content={metadata.description ?? ''} />
         <meta property="og:title" content={(metadata.title as string) ?? 'TransUA'} />
-        <meta property="og:description" content={metadata.description} />
+        <meta property="og:description" content={metadata.description ?? ''} />
         <meta property="og:type" content="website" />
         <link rel="icon" href="/favicon.svg" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
