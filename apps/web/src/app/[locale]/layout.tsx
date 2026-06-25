@@ -60,8 +60,9 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <NextTopLoader color="#f59e0b" height={3} showSpinner={false} />
           <ToastProvider>
+            <a href="#main-content" className="sr-only">Skip to content</a>
             <Navbar />
-            <main>{children}</main>
+            <main id="main-content">{children}</main>
             <CookieBanner />
           </ToastProvider>
         </NextIntlClientProvider>
