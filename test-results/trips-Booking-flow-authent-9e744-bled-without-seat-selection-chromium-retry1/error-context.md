@@ -1,0 +1,51 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e4]:
+      - link "TransUA" [ref=e5] [cursor=pointer]:
+        - /url: /uk
+        - img [ref=e7]
+        - generic [ref=e9]: TransUA
+      - generic [ref=e10]:
+        - link "Поїздки" [ref=e11] [cursor=pointer]:
+          - /url: /uk/trips
+        - link "Посилки" [ref=e12] [cursor=pointer]:
+          - /url: /uk/parcels
+        - link "Увійти" [ref=e14] [cursor=pointer]:
+          - /url: /uk/login
+        - link "Реєстрація" [ref=e15] [cursor=pointer]:
+          - /url: /uk/register
+        - generic [ref=e16]:
+          - button "🇺🇦" [ref=e17] [cursor=pointer]
+          - button "🇳🇴" [ref=e18] [cursor=pointer]
+          - button "🇸🇪" [ref=e19] [cursor=pointer]
+          - button "🇵🇱" [ref=e20] [cursor=pointer]
+  - main [ref=e21]:
+    - generic [ref=e23]:
+      - heading "Вхід до TransUA" [level=1] [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: Email
+          - textbox [ref=e28]
+        - generic [ref=e29]:
+          - generic [ref=e30]: Пароль
+          - generic [ref=e31]:
+            - textbox [ref=e32]
+            - button "Показати пароль" [ref=e33] [cursor=pointer]
+        - button "Увійти" [ref=e34] [cursor=pointer]
+      - paragraph [ref=e35]:
+        - text: Немає акаунту?
+        - link "Зареєструватись" [ref=e36] [cursor=pointer]:
+          - /url: /uk/register
+  - generic [ref=e37]:
+    - paragraph [ref=e38]:
+      - text: Ми використовуємо лише необхідні файли cookie для автентифікації.
+      - link "Політика конфіденційності" [ref=e39] [cursor=pointer]:
+        - /url: /uk/privacy
+    - generic [ref=e40]:
+      - button "Відхилити" [ref=e41] [cursor=pointer]
+      - button "Прийняти" [ref=e42] [cursor=pointer]
+  - alert [ref=e43]
+```

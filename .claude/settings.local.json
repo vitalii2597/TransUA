@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma:*)",
+      "Bash(netstat -ano)",
+      "Bash(powershell -Command \"Stop-Process -Id 15212 -Force; Write-Host 'done'\" 2>&1)",
+      "Bash(powershell -Command \"Stop-Process -Id 4416 -Force; Write-Host 'done'\" 2>&1)",
+      "Bash(powershell -Command \"Stop-Process -Id 20848 -Force; Write-Host ''''killed 3001''''\")",
+      "Bash(powershell -Command \"Stop-Process -Id 19776 -Force; Write-Host ''''killed 3000''''\")",
+      "Bash(xargs -I{} powershell -Command 'Stop-Process -Id {} -Force -ErrorAction SilentlyContinue')",
+      "Bash(npx ts-node:*)",
+      "Bash(taskkill:*)",
+      "Bash(Get-Process -Id 10796)",
+      "Bash(Stop-Process -Force)",
+      "Bash(cmd /c \"taskkill /PID 10796 /F\")",
+      "Bash(findstr :3001)",
+      "Bash(cmd /c \"taskkill /F /PID 10796 2>&1\")",
+      "Bash(cmd /c \"taskkill /F /PID 10796\")",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm dev *)",
+      "Bash(curl -s http://localhost:3001/api/routes)"
+    ]
+  }
+}

@@ -3,6 +3,8 @@ import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import '../globals.css';
+import { Inter } from 'next/font/google';
+const inter = Inter({ subsets: ['latin'], display: 'swap' });
 import Navbar from '@/components/layout/Navbar';
 import CookieBanner from '@/components/CookieBanner';
 import { ToastProvider } from '@/components/Toast';
@@ -45,11 +47,11 @@ export default async function LocaleLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={inter.className}>
       <head>
-        <meta name="description" content={metadata.description} />
+        <meta name="description" content={metadata.description ?? ''} />
         <meta property="og:title" content={(metadata.title as string) ?? 'TransUA'} />
-        <meta property="og:description" content={metadata.description} />
+        <meta property="og:description" content={metadata.description ?? ''} />
         <meta property="og:type" content="website" />
         <link rel="icon" href="/favicon.svg" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -58,8 +60,9 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <NextTopLoader color="#f59e0b" height={3} showSpinner={false} />
           <ToastProvider>
+            <a href="#main-content" className="sr-only">Skip to content</a>
             <Navbar />
-            <main>{children}</main>
+            <main id="main-content">{children}</main>
             <CookieBanner />
           </ToastProvider>
         </NextIntlClientProvider>

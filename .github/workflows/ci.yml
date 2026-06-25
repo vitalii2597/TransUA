@@ -1,0 +1,260 @@
+# CI workflow for TransUA
+# Runs install, build (web/api), unit tests and Playwright E2E against a seeded API.
+# Security updates: use repository secrets for DB credentials and restrict workflow permissions.
+
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+# Least-privilege permissions for the GITHUB_TOKEN
+permissions:
+  contents: read
+  checks: write
+  actions: read
+
+env:
+  CI: true
+
+# Cache key helper
+# Key uses the pnpm lockfile so cache is refreshed when dependencies change
+
+jobs:
+  install:
+    name: Install dependencies (pnpm)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # Cache pnpm store to speed up installs across jobs
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            ~/.cache/pnpm
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies (workspace)
+        run: pnpm install --frozen-lockfile
+
+  build-web:
+    name: Build web
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            ~/.cache/pnpm
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies (uses cache)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @transua/web
+        run: pnpm --filter @transua/web build
+
+  build-api:
+    name: Build api
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            ~/.cache/pnpm
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies (uses cache)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @transua/api
+        run: pnpm --filter @transua/api build
+
+  test-unit:
+    name: Unit tests (placeholder)
+    needs: [build-web, build-api]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            ~/.cache/pnpm
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # If the repo has a unit test script named `test:unit`, run it. Otherwise this step is a no-op.
+      - name: Run unit tests (if configured)
+        shell: bash
+        run: |
+          if node -e "console.log(require('./package.json').scripts && require('./package.json').scripts['test:unit'] ? '1' : '0')" | grep -q 1; then
+            pnpm -w test:unit
+          else
+            echo "No test:unit script found; skipping unit tests"
+          fi
+
+  e2e:
+    name: Playwright E2E (seeded API)
+    needs: [build-web, build-api]
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ${{ secrets.CI_POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.CI_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.CI_POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ${{ secrets.CI_POSTGRES_USER }} -d ${{ secrets.CI_POSTGRES_DB }}" --health-interval 10s --health-timeout 5s --health-retries 5
+
+    env:
+      # Point the API/Prisma to the service provided by the job, using secrets
+      DATABASE_URL: postgresql://${{ secrets.CI_POSTGRES_USER }}:${{ secrets.CI_POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.CI_POSTGRES_DB }}
+      # API default port expected by the web E2E tests and the local API start script
+      API_PORT: '${{ secrets.CI_API_PORT || '3001' }}'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pnpm-store
+            ~/.cache/pnpm
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm --filter @transua/api prisma generate
+
+      - name: Run migrations (deploy or push)
+        # Try migrate deploy (for production-style migrations), fall back to db push if no migrations present
+        run: pnpm --filter @transua/api prisma migrate deploy || pnpm --filter @transua/api prisma db push --accept-data-loss
+
+      - name: Seed database
+        # Assumption: seed script is at apps/api/prisma/seed.ts and requires ts-node. Adjust if different.
+        run: |
+          if [ -f "apps/api/prisma/seed.ts" ]; then
+            npx ts-node --transpile-only apps/api/prisma/seed.ts
+          else
+            echo "Seed script not found at apps/api/prisma/seed.ts — adjust CI workflow or add a seed script";
+            exit 1
+          fi
+
+      - name: Start API (background)
+        run: |
+          pnpm --filter @transua/api start --silent &
+          echo $! > api_pid.txt
+
+      - name: Wait for API health
+        # Wait up to 120s for the API to respond on the health endpoint. Fails the job if not reachable.
+        run: |
+          set -e
+          timeout=120
+          url="http://localhost:${API_PORT}/api/health"
+          until curl -sSf "$url" >/dev/null; do
+            timeout=$((timeout-1))
+            if [ $timeout -le 0 ]; then
+              echo "API health endpoint did not become available: $url"
+              cat /proc/1/fd/1 || true
+              exit 1
+            fi
+            echo "Waiting for API to be ready... ($timeout)"
+            sleep 1
+          done
+
+      - name: Run Playwright E2E tests
+        # Assumes a workspace script exists that runs Playwright for the web app
+        run: pnpm --filter @transua/web test:e2e
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            playwright-report
+            test-results
+            tests-results
+            apps/web/test-results
+
+      - name: Persist Playwright trace (if produced)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-trace
+          path: |
+            apps/web/test-results/**/trace.zip
+            **/trace.zip
+
+# End of CI workflow
