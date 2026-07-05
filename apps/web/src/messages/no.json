@@ -44,7 +44,7 @@
     "confirmLogout": "Er du sikker på at du vil logge ut?"
   },
   "home": {
-    "hero": "Turer og pakker: Ukraina ↔ Norge / Sverige",
+    "heroRoute": "Ukraina / Polen ↔ Sverige / Norge",
     "tagline": "Raskt, pålitelig, enkelt",
     "searchTrips": "Finn tur",
     "sendParcel": "Send pakke"
@@ -90,7 +90,17 @@
     "paymentMethod": "Betalingsmåte",
     "cashPayment": "Kontanter til sjåføren",
     "cardComingSoon": "Kortbetaling — kommer snart",
-    "myBookings": "Mine billetter"
+    "myBookings": "Mine billetter",
+    "eyebrow": "Rutetabell",
+    "title": "Gjeldende rutetabell",
+    "subtitle": "Hver tur varer omtrent en uke: først reiser pakkene, så passasjerene, noen dager i Norge — og retur til Ukraina.",
+    "run": "Tur",
+    "parcelDeparture": "Avreise med pakker",
+    "passengerDeparture": "Avreise med passasjerer",
+    "inNorway": "I Norge",
+    "returnDeparture": "Retur til Ukraina",
+    "parcelCutoff": "Vi tar imot pakker til og med {date}",
+    "completed": "Fullført"
   },
   "bookings": {
     "title": "Mine bestillinger",

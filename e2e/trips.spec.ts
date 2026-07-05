@@ -3,54 +3,22 @@ import { registerUser, setAuthCookie } from './helpers/auth';
 
 const BASE = 'http://localhost:3000/uk';
 
-test.describe('Trip search', () => {
-  test('search page renders form and heading', async ({ page }) => {
+test.describe('Trip schedule', () => {
+  test('schedule page renders heading and at least one run', async ({ page }) => {
     await page.goto(`${BASE}/trips`);
     await expect(page.locator('h1')).toBeVisible();
-    await expect(page.locator('input[type="date"]')).toBeVisible();
+    await expect(page.locator('text=/рейс|kurs|tur|resa/i').first()).toBeVisible();
   });
 
-  test('search for Kyiv → Oslo returns results', async ({ page }) => {
-    await page.goto(`${BASE}/trips`);
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    const dateStr = nextWeek.toISOString().split('T')[0];
-
-    await page.locator('input').nth(0).fill('Kyiv');
-    await page.locator('input').nth(1).fill('Oslo');
-    await page.locator('input[type="date"]').fill(dateStr);
-    await page.getByRole('button', { name: /знайти|search/i }).click();
-    // Results section or no-trips message should appear
-    await expect(page.locator('h2, p').filter({ hasText: /результ|result|no trip|поїздок/i }).first()).toBeVisible({ timeout: 8000 });
-  });
-
-  test('search with no results shows empty message', async ({ page }) => {
-    await page.goto(`${BASE}/trips`);
-    await page.locator('input').nth(0).fill('Nowhere');
-    await page.locator('input').nth(1).fill('Somewhere');
-    await page.locator('input[type="date"]').fill('2030-01-01');
-    await page.getByRole('button', { name: /знайти|search/i }).click();
-    await expect(page.locator('text=/no trip|поїздок не знайдено/i')).toBeVisible({ timeout: 8000 });
-  });
-
-  test('Book button redirects unauthenticated user to login', async ({ page }) => {
+  test('trip detail page redirects unauthenticated user to login', async ({ page, request }) => {
     await page.context().clearCookies();
-    await page.goto(`${BASE}/trips`);
-    // Search for trips that exist
-    const nextMonth = new Date();
-    nextMonth.setDate(nextMonth.getDate() + 3);
-    await page.locator('input').nth(0).fill('Kyiv');
-    await page.locator('input').nth(1).fill('Oslo');
-    await page.locator('input[type="date"]').fill(nextMonth.toISOString().split('T')[0]);
-    await page.getByRole('button', { name: /знайти|search/i }).click();
+    const res = await request.get('http://localhost:3001/api/trips?from=Kyiv&to=Oslo&seats=0');
+    const body = await res.json();
+    const trips: any[] = body.data ?? [];
+    if (trips.length === 0) return; // skip if no trips seeded
 
-    const bookBtn = page.getByRole('button', { name: /забронювати|book/i }).first();
-    const hasBook = await bookBtn.isVisible({ timeout: 6000 }).catch(() => false);
-    if (hasBook) {
-      await bookBtn.click();
-      await page.waitForURL(/\/login/, { timeout: 6000 });
-    }
+    await page.goto(`${BASE}/trips/${trips[0].id}`);
+    await page.waitForURL(/\/login/, { timeout: 6000 });
   });
 });
 

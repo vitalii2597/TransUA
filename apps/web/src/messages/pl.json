@@ -44,7 +44,7 @@
     "confirmLogout": "Czy na pewno chcesz się wylogować?"
   },
   "home": {
-    "hero": "Przejazdy i paczki: Ukraina ↔ Norwegia / Szwecja",
+    "heroRoute": "Ukraina / Polska ↔ Szwecja / Norwegia",
     "tagline": "Szybko, niezawodnie, wygodnie",
     "searchTrips": "Znajdź przejazd",
     "sendParcel": "Wyślij paczkę"
@@ -90,7 +90,17 @@
     "paymentMethod": "Metoda płatności",
     "cashPayment": "Gotówka u kierowcy",
     "cardComingSoon": "Płatność kartą — wkrótce",
-    "myBookings": "Moje bilety"
+    "myBookings": "Moje bilety",
+    "eyebrow": "Rozkład",
+    "title": "Aktualny rozkład przejazdów",
+    "subtitle": "Każdy kurs trwa około tygodnia: najpierw wyjeżdżają paczki, potem pasażerowie, kilka dni w Norwegii — i powrót na Ukrainę.",
+    "run": "Kurs",
+    "parcelDeparture": "Wyjazd z paczkami",
+    "passengerDeparture": "Wyjazd z pasażerami",
+    "inNorway": "W Norwegii",
+    "returnDeparture": "Powrót na Ukrainę",
+    "parcelCutoff": "Przyjmujemy paczki do {date} włącznie",
+    "completed": "Zakończony"
   },
   "bookings": {
     "title": "Moje rezerwacje",

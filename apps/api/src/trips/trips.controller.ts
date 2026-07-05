@@ -14,7 +14,9 @@ export class TripsController {
     @Query('date') date: string,
     @Query('seats') seats: string,
   ) {
-    return this.tripsService.search(from || '', to || '', date || new Date().toISOString().split('T')[0], Number(seats) || 1);
+    // No date → list all upcoming departures (timetable view) instead of just today.
+    const seatsNum = seats !== undefined && seats !== '' ? Number(seats) : 1;
+    return this.tripsService.search(from || '', to || '', date || '', seatsNum);
   }
 
   @Get(':id')

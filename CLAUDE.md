@@ -79,6 +79,7 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 - Navbar auth state re-checked on every route change via `usePathname()` dep in `useEffect`
 - Booking pages redirect to login immediately on load if not authenticated
 - Design system: see **Design System** section below (redesigned to "Nordic Blue" — minimal Scandinavian SaaS)
+- `/[locale]/trips` reflects how the route actually operates: a recurring Ukraine ↔ Norway courier+passenger cycle published a couple of months ahead (no per-seat/per-hour booking exists for it). The schedule is a hardcoded `RUNS` array in `trips/page.tsx` (month, run number, 4 dated phases) — update that array directly when the client publishes a new month, no DB/admin UI for it yet. The `Trip`/booking/seat-picker model still exists and is unchanged (`GET /trips`, `/trips/:id`, seat picker) but is no longer surfaced through a public search page.
 
 ---
 
@@ -188,7 +189,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 ### Trips `/api/trips`
 | Method | Endpoint | Auth | Status |
 |---|---|---|---|
-| GET | `/trips?from&to&date&seats` | public | ✅ built |
+| GET | `/trips?from&to&date&seats` | public | ✅ built (`date` optional → omitting it lists all upcoming SCHEDULED trips, capped at 60; used internally by the seat-picker flow via trip id, not exposed via a public search UI) |
 | GET | `/trips/:id` | public | ✅ built (returns takenSeats[]) |
 | POST | `/trips` | admin | 🔲 Phase 4 |
 | PATCH | `/trips/:id/status` | driver | 🔲 Phase 4 |
@@ -249,7 +250,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]` — Scandinavian hero with Sprinter van SVG, route cards, features strip, CTA
 - `/[locale]/login` — login form
 - `/[locale]/register` — register form
-- `/[locale]/trips` — search form + results (auth check on Book button)
+- `/[locale]/trips` — published schedule (2026-07 redesign): static, hand-maintained timetable grouped by month. Each "run" (Ukraine ↔ Norway courier + passenger cycle) is a vertical status timeline — parcel departure (+ drop-off cutoff) → passenger departure → days at destination → return — with done/current/upcoming states. No search form, no seats/price/booking on this page (see Architecture Decisions).
 - `/[locale]/trips/[id]` — 4-step booking: Seat → Passengers → Payment → Confirm (auth redirect on load)
 - `/[locale]/(dashboard)/dashboard` — profile with i18n labels + quick links to bookings/trips
 - `/[locale]/(dashboard)/bookings` — my bookings + cancel + PDF download + empty CTA

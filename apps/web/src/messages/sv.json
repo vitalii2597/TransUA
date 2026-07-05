@@ -44,7 +44,7 @@
     "confirmLogout": "Är du säker på att du vill logga ut?"
   },
   "home": {
-    "hero": "Resor och paket: Ukraina ↔ Norge / Sverige",
+    "heroRoute": "Ukraina / Polen ↔ Sverige / Norge",
     "tagline": "Snabbt, pålitligt, enkelt",
     "searchTrips": "Hitta resa",
     "sendParcel": "Skicka paket"
@@ -90,7 +90,17 @@
     "paymentMethod": "Betalningssätt",
     "cashPayment": "Kontanter till föraren",
     "cardComingSoon": "Kortbetalning — kommer snart",
-    "myBookings": "Mina biljetter"
+    "myBookings": "Mina biljetter",
+    "eyebrow": "Tidtabell",
+    "title": "Aktuell tidtabell",
+    "subtitle": "Varje resa tar ungefär en vecka: först skickas paketen, sedan passagerarna, några dagar i Norge — och retur till Ukraina.",
+    "run": "Resa",
+    "parcelDeparture": "Avresa med paket",
+    "passengerDeparture": "Avresa med passagerare",
+    "inNorway": "I Norge",
+    "returnDeparture": "Retur till Ukraina",
+    "parcelCutoff": "Vi tar emot paket till och med {date}",
+    "completed": "Genomförd"
   },
   "bookings": {
     "title": "Mina bokningar",

@@ -75,7 +75,7 @@ export default function HomePage() {
         {/* Norwegian fjord range backdrop */}
         <NordicMountains />
         <Container className="relative pt-10 pb-24 sm:pt-12 sm:pb-28">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto max-w-4xl text-center">
             {/* eyebrow badge */}
             <div className="animate-fade-up mb-6 inline-flex items-center gap-2 rounded-full border border-brand-100 bg-white/70 px-3.5 py-1.5 backdrop-blur">
               <span className="relative flex h-2 w-2">
@@ -88,10 +88,10 @@ export default function HomePage() {
             </div>
 
             <h1
-              className="animate-fade-up font-display text-4xl font-bold leading-[1.1] tracking-tight text-ink sm:text-5xl md:text-6xl"
+              className="animate-fade-up text-balance font-display text-3xl font-bold leading-[1.15] tracking-tight text-ink sm:text-4xl lg:whitespace-nowrap"
               style={{ animationDelay: '80ms' }}
             >
-              {t('hero')}
+              {t('heroRoute')}
             </h1>
             <p
               className="animate-fade-up mx-auto mt-5 max-w-xl text-lg text-slate-600"
