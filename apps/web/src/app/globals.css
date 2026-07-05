@@ -1,30 +1,133 @@
 @tailwind base;
-
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --brand: #2563eb;
+    --brand-hover: #1d4ed8;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --hairline: #e2e8f0;
+    --surface: #ffffff;
+    --surface-2: #f8fafc;
+  }
+
+  html,
   body {
-    font-family: 'Inter', system-ui, sans-serif;
+    /* Kill any horizontal scrollbar without breaking position: sticky
+       (clip, unlike hidden, does not create a scroll container). */
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans), system-ui, sans-serif;
+    background-color: var(--surface);
+    color: var(--ink);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  ::selection {
+    background-color: #bfdbfe;
+    color: var(--ink);
+  }
+
+  /* Visible, consistent keyboard focus everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
+/* Tabular figures for timetable-style data (times, prices, seats, codes). */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* ── Signature: the route line draws itself in on load ── */
+@keyframes route-draw {
+  from { stroke-dashoffset: var(--route-len, 300); }
+  to   { stroke-dashoffset: 0; }
+}
+.route-draw {
+  stroke-dasharray: var(--route-len, 300);
+  animation: route-draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) 0.15s both;
+}
+
+/* ── Signature animation: the Sprinter drives the route ── */
+@keyframes van-drive {
+  0%   { left: -14%; }
+  100% { left: 108%; }
+}
+@keyframes van-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2.5px); }
+}
+@keyframes wheel-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes trail-grow {
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+@keyframes float-cargo {
+  0%, 100% { transform: translateY(0); opacity: 0.9; }
+  50%      { transform: translateY(-4px); opacity: 1; }
+}
+.van-drive { animation: van-drive 7s linear infinite; }
+.van-bob   { animation: van-bob 1.1s ease-in-out infinite; }
+.wheel-spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wheel-spin 0.7s linear infinite;
+}
+.trail-grow {
+  transform-origin: left center;
+  animation: trail-grow 7s linear infinite;
+}
+.float-cargo { animation: float-cargo 3s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .van-drive { animation: none; left: 50%; margin-left: -46px; }
+  .van-bob, .wheel-spin, .trail-grow, .float-cargo { animation: none; }
+  .trail-grow { transform: scaleX(0.5); }
+}
+
+/* ── Aurora borealis: a slow drifting shimmer high in the hero sky ── */
+@keyframes aurora-sway {
+  0%, 100% { transform: translateX(-3%) skewX(-8deg); opacity: 0.7; }
+  50%      { transform: translateX(3%) skewX(-3deg); opacity: 1; }
+}
+.aurora { animation: aurora-sway 14s ease-in-out infinite; }
+
+/* ── Existing system animations (kept) ── */
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
-
-.toast-enter {
-  animation: toast-in 0.2s ease forwards;
-}
+.toast-enter { animation: toast-in 0.2s ease forwards; }
 
 @keyframes cookie-slide-up {
   from { opacity: 0; transform: translateX(-50%) translateY(16px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
+.cookie-enter { animation: cookie-slide-up 0.3s ease forwards; }
 
-.cookie-enter {
-  animation: cookie-slide-up 0.3s ease forwards;
+/* Respect reduced-motion: no draw, no fade, no smooth scroll. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .route-draw { stroke-dashoffset: 0; }
 }

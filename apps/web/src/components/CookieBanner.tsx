@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/Button';
 
 const COOKIE_KEY = 'transua_cookie_consent';
 
@@ -30,46 +31,20 @@ export default function CookieBanner() {
   if (!visible) return null;
 
   return (
-    <div
-      className="cookie-enter"
-      style={{
-        position: 'fixed',
-        bottom: 20,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: '#04122a',
-        color: '#fff',
-        borderRadius: 12,
-        padding: '14px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        flexWrap: 'wrap',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-        zIndex: 9000,
-        maxWidth: 580,
-        width: 'calc(100% - 32px)',
-      }}
-    >
-      <p className="text-sm flex-1 min-w-0" style={{ color: '#cbd5e1' }}>
+    <div className="cookie-enter fixed bottom-5 left-1/2 z-[9000] flex w-[calc(100%-32px)] max-w-xl -translate-x-1/2 flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-lift">
+      <p className="min-w-0 flex-1 text-sm text-slate-600">
         {t('message')}{' '}
-        <Link href={`/${locale}/privacy`} style={{ color: '#f59e0b', textDecoration: 'underline' }}>
+        <Link href={`/${locale}/privacy`} className="font-medium text-brand-600 underline underline-offset-2 hover:text-brand-700">
           {t('privacyPolicy')}
         </Link>
       </p>
-      <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-        <button
-          onClick={decline}
-          style={{ background: 'transparent', color: '#94a3b8', padding: '7px 14px', borderRadius: 8, border: '1px solid #334155', cursor: 'pointer', fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap' }}
-        >
+      <div className="flex shrink-0 gap-2">
+        <Button variant="ghost" size="sm" onClick={decline}>
           {t('decline')}
-        </button>
-        <button
-          onClick={accept}
-          style={{ background: '#f59e0b', color: '#04122a', padding: '7px 18px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, whiteSpace: 'nowrap', fontSize: 13 }}
-        >
+        </Button>
+        <Button size="sm" onClick={accept}>
           {t('accept')}
-        </button>
+        </Button>
       </div>
     </div>
   );
