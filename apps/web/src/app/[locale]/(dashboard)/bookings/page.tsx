@@ -3,9 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
+import { Download } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import { Spinner } from '@/components/Spinner';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { RouteLine } from '@/components/RouteLine';
 
 interface Booking {
   id: string;
@@ -87,83 +93,81 @@ export default function BookingsPage() {
       timeStyle: 'short',
     });
 
-  if (!bookings && !loadError) return <Spinner />;
-  if (loadError && !bookings) return <div className="p-8 text-center text-red-500">Failed to load bookings.</div>;
+  if (!bookings && !loadError)
+    return (
+      <div className="flex justify-center py-20">
+        <Spinner />
+      </div>
+    );
+  if (loadError && !bookings)
+    return <div className="p-8 text-center text-red-600">Failed to load bookings.</div>;
 
   const list = bookings ?? [];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">{t('title')}</h1>
+    <Container className="max-w-3xl py-10">
+      <h1 className="mb-6 font-display text-3xl font-semibold text-ink">{t('title')}</h1>
 
       {list.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-md p-12 text-center">
-          <p className="text-gray-500 mb-4">{t('empty')}</p>
-          <button
-            onClick={() => router.push(`/${locale}/trips`)}
-            className="bg-fjord-800 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-fjord-900 transition"
-          >
-            {th('searchTrips')}
-          </button>
-        </div>
+        <Card className="p-12 text-center">
+          <p className="mb-4 text-slate-500">{t('empty')}</p>
+          <Button onClick={() => router.push(`/${locale}/trips`)}>{th('searchTrips')}</Button>
+        </Card>
       ) : (
         <div className="space-y-4">
           {list.map((b) => (
-            <div key={b.id} className={`bg-white rounded-2xl shadow-md p-5 ${b.status === 'CANCELLED' ? 'opacity-60' : ''}`}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-lg font-bold text-gray-800">
-                    {b.trip.fromCity} → {b.trip.toCity}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-0.5">{fmt(b.trip.departureAt)}</p>
-                  <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
-                    <span>{t('seat')}: <strong>{b.seatNumber}</strong></span>
-                    <span>{t('passenger')}: <strong>{b.passengerName}</strong></span>
-                    <span>{b.trip.priceUah} ₴ · {t('cash')}</span>
+            <Card key={b.id} className={`p-5 ${b.status === 'CANCELLED' ? 'opacity-60' : ''}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <RouteLine from={b.trip.fromCity} to={b.trip.toCity} className="text-base" />
+                  <p className="mt-2 font-mono text-sm tabular text-slate-500">{fmt(b.trip.departureAt)}</p>
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+                    <span>
+                      {t('seat')}: <strong className="font-mono tabular">{b.seatNumber}</strong>
+                    </span>
+                    <span>
+                      {t('passenger')}: <strong>{b.passengerName}</strong>
+                    </span>
+                    <span className="font-mono tabular">
+                      {b.trip.priceUah} ₴ · {t('cash')}
+                    </span>
                   </div>
                   {(b.pickupAddress || b.dropoffAddress) && (
-                    <div className="mt-1 text-xs text-gray-400 space-y-0.5">
+                    <div className="mt-1 space-y-0.5 text-xs text-slate-400">
                       {b.pickupAddress && <p>Pickup: {b.pickupAddress}</p>}
                       {b.dropoffAddress && <p>Dropoff: {b.dropoffAddress}</p>}
                       {b.luggageKg ? <p>Luggage: {b.luggageKg} kg</p> : null}
                     </div>
                   )}
                   {b.passengers && b.passengers.length > 0 && (
-                    <div className="mt-1 text-xs text-gray-400">
+                    <div className="mt-1 text-xs text-slate-400">
                       Passengers: {b.passengers.map((p) => p.fullName).join(', ')}
                     </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-1">{t('bookingRef')}: {b.id.slice(0, 8).toUpperCase()}</p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    {t('bookingRef')}: <span className="font-mono tabular">{b.id.slice(0, 8).toUpperCase()}</span>
+                  </p>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  b.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                }`}>
+                <Badge tone={b.status === 'CONFIRMED' ? 'success' : 'neutral'}>
                   {b.status === 'CONFIRMED' ? t('confirmed') : t('cancelled')}
-                </span>
+                </Badge>
               </div>
 
               {b.status === 'CONFIRMED' && (
-                <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => downloadTicket(b.id)}
-                    disabled={downloading === b.id}
-                    className="text-sm bg-fjord-800 text-white px-4 py-1.5 rounded-lg hover:bg-fjord-900 transition disabled:opacity-60"
-                  >
+                <div className="mt-4 flex gap-3 border-t border-slate-100 pt-4">
+                  <Button size="sm" onClick={() => downloadTicket(b.id)} disabled={downloading === b.id}>
+                    <Download className="h-4 w-4" aria-hidden="true" />
                     {downloading === b.id ? tc('loading') : t('download')}
-                  </button>
-                  <button
-                    onClick={() => handleCancel(b.id)}
-                    disabled={cancelling === b.id}
-                    className="text-sm border border-red-300 text-red-600 px-4 py-1.5 rounded-lg hover:bg-red-50 transition disabled:opacity-60"
-                  >
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => handleCancel(b.id)} disabled={cancelling === b.id}>
                     {cancelling === b.id ? tc('loading') : t('cancel')}
-                  </button>
+                  </Button>
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       )}
-    </div>
+    </Container>
   );
 }

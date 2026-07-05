@@ -3,10 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, ArrowRight, Check, Wallet } from 'lucide-react';
 import api from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { Spinner } from '@/components/Spinner';
-
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input, Field } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
+import { RouteLine } from '@/components/RouteLine';
 
 interface Trip {
   id: string;
@@ -47,9 +53,6 @@ export default function TripDetailPage() {
 
   // Step 2
   const [passengers, setPassengers] = useState<Passenger[]>([{ fullName: '', documentNumber: '', phone: '' }]);
-
-  // Step 3 — cash only for now
-  const paymentMethod = 'CASH';
 
   // Step 4
   const [bookingRef, setBookingRef] = useState('');
@@ -121,7 +124,12 @@ export default function TripDetailPage() {
     }
   }
 
-  if (!trip) return <Spinner />;
+  if (!trip)
+    return (
+      <div className="flex justify-center py-20">
+        <Spinner />
+      </div>
+    );
 
   const taken = new Set(trip.takenSeats);
   const seatNumbers = Array.from({ length: trip.totalSeats }, (_, i) => i + 1);
@@ -129,50 +137,64 @@ export default function TripDetailPage() {
   // Step 4 — Success
   if (step === 3) {
     return (
-      <div className="max-w-md mx-auto px-4 py-16 text-center">
-        <div className="text-5xl mb-4">🎉</div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('bookingSuccess')}</h1>
-        <p className="text-gray-500 mb-1">{t('cashNote')}</p>
-        <p className="text-gray-500 mb-6">{trip.fromCity} → {trip.toCity} · Seat {selectedSeat}</p>
-        <p className="text-sm text-gray-400 mb-6">Ref: <strong>{bookingRef}</strong></p>
-        <button onClick={() => router.push(`/${locale}/bookings`)}
-          className="bg-fjord-800 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-fjord-900 transition mr-3">
-          {t('myBookings')}
-        </button>
-        <button onClick={() => router.push(`/${locale}/trips`)}
-          className="border border-gray-300 px-6 py-2.5 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-          {t('search')}
-        </button>
-      </div>
+      <Container className="max-w-md py-16 text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+          <Check className="h-8 w-8" aria-hidden="true" />
+        </div>
+        <h1 className="font-display text-2xl font-semibold text-ink">{t('bookingSuccess')}</h1>
+        <p className="mt-2 text-slate-500">{t('cashNote')}</p>
+        <div className="mx-auto mt-4 max-w-xs">
+          <RouteLine from={trip.fromCity} to={trip.toCity} middle={`#${selectedSeat}`} />
+        </div>
+        <p className="mt-4 text-sm text-slate-400">
+          Ref: <strong className="font-mono tabular text-ink">{bookingRef}</strong>
+        </p>
+        <div className="mt-8 flex justify-center gap-3">
+          <Button onClick={() => router.push(`/${locale}/bookings`)}>{t('myBookings')}</Button>
+          <Button variant="secondary" onClick={() => router.push(`/${locale}/trips`)}>
+            {t('search')}
+          </Button>
+        </div>
+      </Container>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      <button onClick={() => router.back()} className="text-fjord-700 hover:underline text-sm mb-4">← {t('back')}</button>
+    <Container className="max-w-2xl py-10">
+      <button
+        onClick={() => router.back()}
+        className="mb-4 inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t('back')}
+      </button>
 
       {/* Trip summary */}
-      <div className="bg-white rounded-2xl shadow-md p-5 mb-6">
-        <h1 className="text-xl font-bold text-gray-800">{trip.fromCity} → {trip.toCity}</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{t('departure')}: {fmt(trip.departureAt)}</p>
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-amber-600">💵 {t('cashNote')}</p>
-          <p className="text-lg font-bold text-fjord-700">{trip.priceUah} ₴</p>
+      <Card className="mb-6 p-5">
+        <RouteLine from={trip.fromCity} to={trip.toCity} className="text-lg" />
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-sm text-slate-500">
+            {t('departure')}: <span className="font-mono tabular text-slate-600">{fmt(trip.departureAt)}</span>
+          </p>
+          <p className="font-mono text-xl font-semibold tabular text-ink">{trip.priceUah} ₴</p>
         </div>
-      </div>
+      </Card>
 
       {/* Stepper */}
-      <div className="flex items-center mb-8">
+      <div className="mb-8 flex items-center">
         {STEPS.slice(0, 3).map((s, i) => (
-          <div key={s} className="flex items-center flex-1">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition
-              ${i < step ? 'bg-green-500 text-white' : i === step ? 'bg-fjord-800 text-white' : 'bg-gray-200 text-gray-500'}`}>
-              {i < step ? '✓' : i + 1}
+          <div key={s} className="flex flex-1 items-center">
+            <div
+              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold transition
+              ${i < step ? 'bg-emerald-500 text-white' : i === step ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'}`}
+            >
+              {i < step ? <Check className="h-4 w-4" /> : i + 1}
             </div>
-            <span className={`ml-2 text-xs hidden sm:block ${i === step ? 'text-fjord-700 font-semibold' : 'text-gray-400'}`}>
+            <span
+              className={`ml-2 hidden text-xs sm:block ${i === step ? 'font-semibold text-brand-700' : 'text-slate-400'}`}
+            >
               {t(s)}
             </span>
-            {i < 2 && <div className={`flex-1 h-0.5 mx-3 ${i < step ? 'bg-green-500' : 'bg-gray-200'}`} />}
+            {i < 2 && <div className={`mx-3 h-0.5 flex-1 ${i < step ? 'bg-emerald-500' : 'bg-slate-200'}`} />}
           </div>
         ))}
       </div>
@@ -180,14 +202,20 @@ export default function TripDetailPage() {
       {/* Step 1 — Seat + Addresses */}
       {step === 0 && (
         <div className="space-y-5">
-          <div className="bg-white rounded-2xl shadow-md p-6">
-            <h2 className="text-base font-semibold text-gray-700 mb-4">{t('selectSeat')}</h2>
-            <div className="flex gap-4 text-xs text-gray-500 mb-4">
-              <span className="flex items-center gap-1"><span className="w-4 h-4 rounded bg-gray-200 inline-block" /> {t('seatTaken')}</span>
-              <span className="flex items-center gap-1"><span className="w-4 h-4 rounded bg-fjord-100 border border-fjord-300 inline-block" /> {t('seatFree')}</span>
-              <span className="flex items-center gap-1"><span className="w-4 h-4 rounded bg-fjord-800 inline-block" /> {t('seatSelected')}</span>
+          <Card className="p-6">
+            <h2 className="mb-4 text-base font-semibold text-ink">{t('selectSeat')}</h2>
+            <div className="mb-4 flex flex-wrap gap-4 text-xs text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-4 w-4 rounded bg-slate-200" /> {t('seatTaken')}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-4 w-4 rounded border border-brand-200 bg-brand-50" /> {t('seatFree')}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block h-4 w-4 rounded bg-brand-600" /> {t('seatSelected')}
+              </span>
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
               {seatNumbers.map((n) => {
                 const isTaken = taken.has(n);
                 const isSelected = selectedSeat === n;
@@ -198,49 +226,66 @@ export default function TripDetailPage() {
                     onClick={() => setSelectedSeat(isSelected ? null : n)}
                     aria-label={`${t('selectSeat')} ${n}${isTaken ? ` — ${t('seatTaken')}` : isSelected ? ` — ${t('seatSelected')}` : ` — ${t('seatFree')}`}`}
                     aria-pressed={isSelected}
-                    className={`py-2 rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-fjord-500
-                      ${isTaken ? 'bg-gray-200 text-gray-400 cursor-not-allowed' :
-                        isSelected ? 'bg-fjord-800 text-white' :
-                        'bg-fjord-50 border border-fjord-200 text-fjord-700 hover:bg-fjord-100'}`}
+                    className={`rounded-lg py-2 font-mono text-sm font-medium tabular transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
+                      ${
+                        isTaken
+                          ? 'cursor-not-allowed bg-slate-100 text-slate-300'
+                          : isSelected
+                            ? 'bg-brand-600 text-white'
+                            : 'border border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100'
+                      }`}
                   >
                     {n}
                   </button>
                 );
               })}
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-white rounded-2xl shadow-md p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('pickupAddress')}</label>
-              <input aria-label={t('pickupAddress')} value={pickupAddress} onChange={(e) => setPickupAddress(e.target.value)} placeholder="e.g. Khreshchatyk St 1, Kyiv"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('dropoffAddress')}</label>
-              <input aria-label={t('dropoffAddress')} value={dropoffAddress} onChange={(e) => setDropoffAddress(e.target.value)} placeholder="e.g. Karl Johans gate 1, Oslo"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500 text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('luggage')}</label>
-              <input aria-label={t('luggage')} type="number" min={0} max={50} value={luggageKg}
+          <Card className="space-y-4 p-6">
+            <Field label={t('pickupAddress')} htmlFor="pickup">
+              <Input
+                id="pickup"
+                value={pickupAddress}
+                onChange={(e) => setPickupAddress(e.target.value)}
+                placeholder="e.g. Khreshchatyk St 1, Kyiv"
+              />
+            </Field>
+            <Field label={t('dropoffAddress')} htmlFor="dropoff">
+              <Input
+                id="dropoff"
+                value={dropoffAddress}
+                onChange={(e) => setDropoffAddress(e.target.value)}
+                placeholder="e.g. Karl Johans gate 1, Oslo"
+              />
+            </Field>
+            <Field label={t('luggage')} htmlFor="luggage">
+              <Input
+                id="luggage"
+                type="number"
+                min={0}
+                max={50}
+                value={luggageKg}
                 onChange={(e) => setLuggageKg(Number(e.target.value))}
-                className="w-32 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500 text-sm" />
-            </div>
-          </div>
+                className="w-32"
+              />
+            </Field>
+          </Card>
 
           {/* First passenger name required to advance */}
-          <div className="bg-white rounded-2xl shadow-md p-6">
-            <h2 className="text-base font-semibold text-gray-700 mb-3">{t('passengerName')}</h2>
-            <input aria-label={t('fullName')} value={passengers[0].fullName} onChange={(e) => updatePassenger(0, 'fullName', e.target.value)}
+          <Card className="p-6">
+            <h2 className="mb-3 text-base font-semibold text-ink">{t('passengerName')}</h2>
+            <Input
+              aria-label={t('fullName')}
+              value={passengers[0].fullName}
+              onChange={(e) => updatePassenger(0, 'fullName', e.target.value)}
               placeholder="Full name"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500 text-sm" />
-          </div>
+            />
+          </Card>
 
-          <button onClick={() => setStep(1)} disabled={!canAdvanceStep1()}
-            className="w-full bg-fjord-800 text-white py-2.5 rounded-lg font-semibold hover:bg-fjord-900 transition disabled:opacity-50">
-            {t('next')} →
-          </button>
+          <Button onClick={() => setStep(1)} disabled={!canAdvanceStep1()} size="lg" className="w-full">
+            {t('next')} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Button>
         </div>
       )}
 
@@ -248,50 +293,57 @@ export default function TripDetailPage() {
       {step === 1 && (
         <div className="space-y-4">
           {passengers.map((p, i) => (
-            <div key={i} className="bg-white rounded-2xl shadow-md p-6 space-y-3">
+            <Card key={i} className="space-y-3 p-6">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-700 text-sm">Passenger {i + 1}</h3>
+                <h3 className="text-sm font-semibold text-ink">Passenger {i + 1}</h3>
                 {i > 0 && (
-                  <button onClick={() => removePassenger(i)} className="text-xs text-red-500 hover:underline">
+                  <button onClick={() => removePassenger(i)} className="text-xs text-red-600 hover:underline">
                     {t('removePassenger')}
                   </button>
                 )}
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{t('fullName')} *</label>
-                <input aria-label={`${t('fullName')} ${i + 1}`} value={p.fullName} onChange={(e) => updatePassenger(i, 'fullName', e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500 text-sm" />
-              </div>
+              <Field label={`${t('fullName')} *`} htmlFor={`pax-name-${i}`}>
+                <Input
+                  id={`pax-name-${i}`}
+                  value={p.fullName}
+                  onChange={(e) => updatePassenger(i, 'fullName', e.target.value)}
+                />
+              </Field>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">{t('documentNumber')}</label>
-                  <input aria-label={`${t('documentNumber')} ${i + 1}`} value={p.documentNumber} onChange={(e) => updatePassenger(i, 'documentNumber', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500 text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">{ta('phone')}</label>
-                  <input aria-label={`${ta('phone')} ${i + 1}`} value={p.phone} onChange={(e) => updatePassenger(i, 'phone', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500 text-sm" />
-                </div>
+                <Field label={t('documentNumber')} htmlFor={`pax-doc-${i}`}>
+                  <Input
+                    id={`pax-doc-${i}`}
+                    value={p.documentNumber}
+                    onChange={(e) => updatePassenger(i, 'documentNumber', e.target.value)}
+                  />
+                </Field>
+                <Field label={ta('phone')} htmlFor={`pax-phone-${i}`}>
+                  <Input
+                    id={`pax-phone-${i}`}
+                    value={p.phone}
+                    onChange={(e) => updatePassenger(i, 'phone', e.target.value)}
+                  />
+                </Field>
               </div>
-            </div>
+            </Card>
           ))}
 
           {passengers.length < 3 && (
-            <button onClick={addPassenger}
-              className="w-full border-2 border-dashed border-fjord-300 text-fjord-600 py-2.5 rounded-xl text-sm hover:bg-fjord-50 transition">
+            <button
+              onClick={addPassenger}
+              className="w-full rounded-xl border-2 border-dashed border-brand-200 py-2.5 text-sm text-brand-600 transition hover:bg-brand-50"
+            >
               + {t('addPassenger')}
             </button>
           )}
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(0)} className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 transition">
-              ← {t('back')}
-            </button>
-            <button onClick={() => setStep(2)} disabled={!canAdvanceStep2()}
-              className="flex-1 bg-fjord-800 text-white py-2.5 rounded-lg font-semibold hover:bg-fjord-900 transition disabled:opacity-50">
-              {t('next')} →
-            </button>
+            <Button variant="secondary" onClick={() => setStep(0)} size="lg" className="flex-1">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t('back')}
+            </Button>
+            <Button onClick={() => setStep(2)} disabled={!canAdvanceStep2()} size="lg" className="flex-1">
+              {t('next')} <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
           </div>
         </div>
       )}
@@ -299,54 +351,61 @@ export default function TripDetailPage() {
       {/* Step 3 — Payment */}
       {step === 2 && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl shadow-md p-6">
-            <h2 className="text-base font-semibold text-gray-700 mb-4">{t('paymentMethod')}</h2>
+          <Card className="p-6">
+            <h2 className="mb-4 text-base font-semibold text-ink">{t('paymentMethod')}</h2>
 
             {/* Cash — selected */}
-            <div className="flex items-center gap-3 p-4 border-2 border-fjord-700 bg-fjord-50 rounded-xl mb-3 cursor-default">
-              <div className="w-5 h-5 rounded-full border-2 border-fjord-700 flex items-center justify-center shrink-0">
-                <div className="w-2.5 h-2.5 rounded-full bg-fjord-700" />
+            <div className="mb-3 flex cursor-default items-center gap-3 rounded-xl border-2 border-brand-600 bg-brand-50 p-4">
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-brand-600">
+                <div className="h-2.5 w-2.5 rounded-full bg-brand-600" />
               </div>
-              <div>
-                <p className="font-semibold text-fjord-800 text-sm">💵 {t('cashPayment')}</p>
-                <p className="text-xs text-fjord-600">{trip.priceUah} ₴</p>
+              <div className="flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-brand-700" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-semibold text-brand-800">{t('cashPayment')}</p>
+                  <p className="font-mono text-xs tabular text-brand-600">{trip.priceUah} ₴</p>
+                </div>
               </div>
             </div>
 
             {/* Card — disabled */}
-            <div className="flex items-center gap-3 p-4 border border-gray-200 rounded-xl opacity-50 cursor-not-allowed">
-              <div className="w-5 h-5 rounded-full border-2 border-gray-300 shrink-0" />
-              <div>
-                <p className="font-medium text-gray-500 text-sm">💳 {t('cardComingSoon')}</p>
-              </div>
+            <div className="flex cursor-not-allowed items-center gap-3 rounded-xl border border-slate-200 p-4 opacity-50">
+              <div className="h-5 w-5 shrink-0 rounded-full border-2 border-slate-300" />
+              <p className="text-sm font-medium text-slate-500">💳 {t('cardComingSoon')}</p>
             </div>
-          </div>
+          </Card>
 
           {/* Summary */}
-          <div className="bg-white rounded-2xl shadow-md p-6 text-sm text-gray-600 space-y-1.5">
-            <p className="font-semibold text-gray-800 mb-2">Summary</p>
-            <p>{trip.fromCity} → {trip.toCity}</p>
-            <p>{fmt(trip.departureAt)}</p>
-            <p>Seat {selectedSeat} · {passengers.length} passenger{passengers.length > 1 ? 's' : ''}</p>
+          <Card className="space-y-1.5 p-6 text-sm text-slate-600">
+            <p className="mb-2 font-semibold text-ink">Summary</p>
+            <p>
+              {trip.fromCity} → {trip.toCity}
+            </p>
+            <p className="font-mono tabular">{fmt(trip.departureAt)}</p>
+            <p>
+              Seat <span className="font-mono tabular">{selectedSeat}</span> · {passengers.length} passenger
+              {passengers.length > 1 ? 's' : ''}
+            </p>
             {pickupAddress && <p>Pickup: {pickupAddress}</p>}
             {dropoffAddress && <p>Dropoff: {dropoffAddress}</p>}
             {luggageKg > 0 && <p>Luggage: {luggageKg} kg</p>}
-            <p className="font-bold text-fjord-700 pt-1">{trip.priceUah} ₴ — cash on board</p>
-          </div>
+            <p className="pt-1 font-mono font-bold tabular text-brand-700">{trip.priceUah} ₴ — cash on board</p>
+          </Card>
 
-          {error && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>}
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+          )}
 
           <div className="flex gap-3">
-            <button onClick={() => setStep(1)} className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 transition">
-              ← {t('back')}
-            </button>
-            <button onClick={handleSubmit} disabled={submitting}
-              className="flex-1 bg-fjord-800 text-white py-2.5 rounded-lg font-semibold hover:bg-fjord-900 transition disabled:opacity-60">
+            <Button variant="secondary" onClick={() => setStep(1)} size="lg" className="flex-1">
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" /> {t('back')}
+            </Button>
+            <Button onClick={handleSubmit} disabled={submitting} size="lg" className="flex-1">
               {submitting ? tc('loading') : t('confirmBooking')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
-    </div>
+    </Container>
   );
 }

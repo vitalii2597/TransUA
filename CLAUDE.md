@@ -83,7 +83,7 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 ---
 
 ## Design System (Nordic Blue)
-Redesign on branch `feat/redesign/nordic-blue` (Phase 1: foundation + shell + homepage). Direction: minimal, modern, Scandinavian.
+Redesign on branch `feat/redesign/nordic-blue`. Direction: minimal, modern, Scandinavian. **Rolled out across all pages** — foundation + shell + homepage, plus auth (split-layout via `components/auth/AuthAside`), trips search + 4-step booking, dashboard/bookings/parcels, driver dashboard + trip detail, all admin tables, and privacy/terms (shared `components/legal/LegalPage`). Every page now builds from the `components/ui/*` primitives + `brand`/`ink`/`slate` tokens; no legacy `fjord`/`sun` classes remain in page code.
 
 - **Palette:** slate neutrals + single `brand` blue accent (`#2563eb`). `ink` = `#0f172a`. Defined in `tailwind.config.ts` (`brand`, `ink`) + CSS vars in `globals.css`. Prefer Tailwind tokens over inline hex; legacy `fjord`/`sun` palette retired.
 - **Typography** (via `next/font` in `[locale]/layout.tsx`, exposed as CSS vars):

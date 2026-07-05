@@ -3,10 +3,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams } from 'next/navigation';
+import { Loader2, Radio, Square } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import api from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import { Spinner } from '@/components/Spinner';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
 
 interface Booking {
   id: string;
@@ -21,7 +24,6 @@ interface Booking {
 
 export default function DriverTripDetailPage() {
   const t = useTranslations('driver');
-  const tc = useTranslations('common');
   const { id } = useParams<{ id: string }>();
   const toast = useToast();
   const [bookings, setBookings] = useState<Booking[] | null>(null);
@@ -81,63 +83,81 @@ export default function DriverTripDetailPage() {
 
   useEffect(() => () => { stopGps(); }, []);
 
-  if (!bookings) return <Spinner />;
+  if (!bookings)
+    return (
+      <div className="flex justify-center py-20">
+        <Spinner />
+      </div>
+    );
+
+  const gpsBase =
+    'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white transition-all ' +
+    'focus-visible:outline-none active:scale-[0.98] disabled:pointer-events-none';
+  const gpsCls = gpsActive
+    ? 'bg-red-600 hover:bg-red-700'
+    : gpsConnecting
+      ? 'bg-slate-400'
+      : 'bg-emerald-600 hover:bg-emerald-700';
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{t('passengers')}</h1>
+    <Container className="max-w-3xl py-10">
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="font-display text-3xl font-semibold text-ink">{t('passengers')}</h1>
         <button
           onClick={gpsActive ? stopGps : gpsConnecting ? undefined : startGps}
           disabled={gpsConnecting}
-          style={{
-            background: gpsActive ? '#dc2626' : gpsConnecting ? '#6b7280' : '#059669',
-            color: '#fff',
-            padding: '8px 18px',
-            borderRadius: 8,
-            border: 'none',
-            cursor: gpsConnecting ? 'not-allowed' : 'pointer',
-            fontWeight: 600,
-            opacity: gpsConnecting ? 0.8 : 1,
-          }}
+          className={`${gpsBase} ${gpsCls}`}
         >
-          {gpsConnecting ? '⟳ Connecting...' : gpsActive ? t('stopGps') : t('broadcastGps')}
+          {gpsConnecting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> Connecting…
+            </>
+          ) : gpsActive ? (
+            <>
+              <Square className="h-4 w-4" aria-hidden="true" /> {t('stopGps')}
+            </>
+          ) : (
+            <>
+              <Radio className="h-4 w-4" aria-hidden="true" /> {t('broadcastGps')}
+            </>
+          )}
         </button>
       </div>
 
       {gpsActive && (
-        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 16px', marginBottom: 20 }} className="text-sm text-green-700 font-medium">
-          ● {t('gpsActive')}
+        <div className="mb-5 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-medium text-emerald-700">
+          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+          {t('gpsActive')}
         </div>
       )}
 
       {bookings.length === 0 ? (
-        <p className="text-gray-500">No passengers yet.</p>
+        <p className="text-slate-500">No passengers yet.</p>
       ) : (
         <div className="space-y-3">
           {bookings.map((b) => (
-            <div key={b.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.07)', padding: '16px 20px' }}>
+            <Card key={b.id} className="p-5">
               <div className="flex items-start gap-4">
-                <div style={{ background: '#1a3a5c', color: '#fff', borderRadius: 8, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-600 font-mono text-sm font-bold tabular text-white">
                   {b.seatNumber}
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-800">{b.passengerName}</p>
-                  <p className="text-sm text-gray-500">{b.user.phone}</p>
-                  {b.pickupAddress && <p className="text-xs text-gray-400 mt-0.5">↑ {b.pickupAddress}</p>}
-                  {b.dropoffAddress && <p className="text-xs text-gray-400">↓ {b.dropoffAddress}</p>}
-                  {b.luggageKg ? <p className="text-xs text-gray-400">Luggage: {b.luggageKg} kg</p> : null}
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-ink">{b.passengerName}</p>
+                  <p className="font-mono text-sm tabular text-slate-500">{b.user.phone}</p>
+                  {b.pickupAddress && <p className="mt-0.5 text-xs text-slate-400">↑ {b.pickupAddress}</p>}
+                  {b.dropoffAddress && <p className="text-xs text-slate-400">↓ {b.dropoffAddress}</p>}
+                  {b.luggageKg ? <p className="text-xs text-slate-400">Luggage: {b.luggageKg} kg</p> : null}
                   {b.passengers.length > 0 && (
-                    <div className="mt-1 text-xs text-gray-400">
+                    <div className="mt-1 text-xs text-slate-400">
                       +{b.passengers.map((p) => p.fullName).join(', ')}
                     </div>
                   )}
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
-    </div>
+    </Container>
   );
 }

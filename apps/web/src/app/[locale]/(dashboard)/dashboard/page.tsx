@@ -3,8 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter, useParams } from 'next/navigation';
+import { Ticket, Bus } from 'lucide-react';
 import api from '@/lib/api';
 import { removeTokens } from '@/lib/auth';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Spinner } from '@/components/Spinner';
 
 interface User {
   id: string;
@@ -31,62 +37,75 @@ export default function DashboardPage() {
   }, [locale, router]);
 
   function handleLogout() {
+    if (!confirm(tn('logout') + '?')) return;
     removeTokens();
     router.push(`/${locale}/login`);
   }
 
   if (!user) {
-    return <div className="p-8 text-center text-gray-500">{tc('loading')}</div>;
+    return (
+      <div className="flex justify-center py-20">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10 space-y-6">
+    <Container className="max-w-4xl space-y-6 py-10">
       {/* Profile card */}
-      <div className="bg-white rounded-2xl shadow-md p-8">
-        <div className="flex items-center justify-between mb-6">
+      <Card className="p-8">
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">{tc('welcome')}, {user.firstName}!</h1>
-            <p className="text-gray-500 mt-1">{user.email}</p>
+            <h1 className="font-display text-2xl font-semibold text-ink">
+              {tc('welcome')}, {user.firstName}!
+            </h1>
+            <p className="mt-1 text-slate-500">{user.email}</p>
           </div>
-          <span className="px-3 py-1 bg-fjord-100 text-fjord-800 rounded-full text-sm font-medium">{user.role}</span>
+          <Badge tone="brand">{user.role}</Badge>
         </div>
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-4">
           {([
             [ta('firstName'), user.firstName],
             [ta('lastName'), user.lastName],
             [ta('phone'), user.phone],
             [ta('language'), user.preferredLang.toUpperCase()],
           ] as [string, string][]).map(([label, value]) => (
-            <div key={label} className="bg-gray-50 rounded-lg p-4">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">{label}</p>
-              <p className="font-medium text-gray-800">{value}</p>
+            <div key={label} className="rounded-lg bg-slate-50 p-4">
+              <p className="mb-1 text-xs uppercase tracking-wide text-slate-500">{label}</p>
+              <p className="font-medium text-ink">{value}</p>
             </div>
           ))}
         </div>
-        <button onClick={handleLogout} className="px-6 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 transition">
+        <Button variant="danger" onClick={handleLogout}>
           {tn('logout')}
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-4">
-        <button onClick={() => router.push(`/${locale}/bookings`)}
-          className="bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 hover:shadow-lg transition group text-left">
-          <div className="w-12 h-12 bg-fjord-100 rounded-xl flex items-center justify-center text-2xl shrink-0">🎫</div>
-          <div>
-            <p className="font-semibold text-gray-800 group-hover:text-fjord-700 transition">{tn('bookings')}</p>
-            <p className="text-sm text-gray-400">{tc('viewTickets')}</p>
-          </div>
-        </button>
-        <button onClick={() => router.push(`/${locale}/trips`)}
-          className="bg-white rounded-2xl shadow-md p-6 flex items-center gap-4 hover:shadow-lg transition group text-left">
-          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl shrink-0">🚌</div>
-          <div>
-            <p className="font-semibold text-gray-800 group-hover:text-green-700 transition">{tn('trips')}</p>
-            <p className="text-sm text-gray-400">{tc('findTrip')}</p>
-          </div>
-        </button>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Card interactive className="group cursor-pointer" >
+          <button onClick={() => router.push(`/${locale}/bookings`)} className="flex w-full items-center gap-4 p-6 text-left">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
+              <Ticket className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="font-semibold text-ink transition group-hover:text-brand-700">{tn('bookings')}</p>
+              <p className="text-sm text-slate-400">{tc('viewTickets')}</p>
+            </div>
+          </button>
+        </Card>
+        <Card interactive className="group cursor-pointer">
+          <button onClick={() => router.push(`/${locale}/trips`)} className="flex w-full items-center gap-4 p-6 text-left">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+              <Bus className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div>
+              <p className="font-semibold text-ink transition group-hover:text-emerald-700">{tn('trips')}</p>
+              <p className="text-sm text-slate-400">{tc('findTrip')}</p>
+            </div>
+          </button>
+        </Card>
       </div>
-    </div>
+    </Container>
   );
 }

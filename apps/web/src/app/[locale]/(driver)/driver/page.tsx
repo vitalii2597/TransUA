@@ -3,9 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
+import { ArrowRight, Users } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import { Spinner } from '@/components/Spinner';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { RouteLine } from '@/components/RouteLine';
 
 type TripStatus = 'SCHEDULED' | 'BOARDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
@@ -21,12 +27,12 @@ interface Trip {
   vehicle?: { plateNumber: string; model: string } | null;
 }
 
-const STATUS_COLORS: Record<TripStatus, string> = {
-  SCHEDULED: 'bg-blue-100 text-blue-700',
-  BOARDING: 'bg-yellow-100 text-yellow-700',
-  IN_PROGRESS: 'bg-purple-100 text-purple-700',
-  COMPLETED: 'bg-green-100 text-green-700',
-  CANCELLED: 'bg-gray-100 text-gray-500',
+const STATUS_TONE: Record<TripStatus, 'brand' | 'warning' | 'success' | 'neutral'> = {
+  SCHEDULED: 'brand',
+  BOARDING: 'warning',
+  IN_PROGRESS: 'brand',
+  COMPLETED: 'success',
+  CANCELLED: 'neutral',
 };
 
 const STATUS_ICONS: Record<TripStatus, string> = {
@@ -45,7 +51,6 @@ const NEXT_STATUS: Partial<Record<TripStatus, TripStatus>> = {
 
 export default function DriverDashboard() {
   const t = useTranslations('driver');
-  const tc = useTranslations('common');
   const { locale } = useParams<{ locale: string }>();
   const router = useRouter();
   const toast = useToast();
@@ -77,52 +82,64 @@ export default function DriverDashboard() {
   const intlLocale = { uk: 'uk-UA', no: 'nb-NO', sv: 'sv-SE', pl: 'pl-PL' }[locale] ?? 'en-GB';
   const fmt = (d: string) => new Date(d).toLocaleString(intlLocale, { dateStyle: 'short', timeStyle: 'short' });
 
-  if (!trips) return <Spinner />;
+  if (!trips)
+    return (
+      <div className="flex justify-center py-20">
+        <Spinner />
+      </div>
+    );
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">{t('title')}</h1>
+    <Container className="max-w-3xl py-10">
+      <h1 className="mb-6 font-display text-3xl font-semibold text-ink">{t('title')}</h1>
 
       {trips.length === 0 ? (
-        <div style={{ background: '#fff', borderRadius: 16, padding: 40, textAlign: 'center', boxShadow: '0 1px 8px rgba(0,0,0,0.07)' }}>
-          <p className="text-gray-500">{t('noTrips')}</p>
-        </div>
+        <Card className="p-10 text-center">
+          <p className="text-slate-500">{t('noTrips')}</p>
+        </Card>
       ) : (
         <div className="space-y-4">
           {trips.map((trip) => (
-            <div key={trip.id} style={{ background: '#fff', borderRadius: 14, boxShadow: '0 1px 8px rgba(0,0,0,0.07)', padding: '20px 24px' }}>
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="text-lg font-bold text-gray-800 truncate max-w-xs">{trip.fromCity} → {trip.toCity}</p>
-                  <p className="text-sm text-gray-500">{fmt(trip.departureAt)} — {fmt(trip.arrivalAt)}</p>
-                  {trip.vehicle && <p className="text-xs text-gray-400 mt-0.5">{trip.vehicle.model} · {trip.vehicle.plateNumber}</p>}
-                  <p className="text-sm text-gray-600 mt-1">{t('passengers')}: <strong>{trip._count.bookings}/{trip.totalSeats}</strong></p>
+            <Card key={trip.id} className="p-5">
+              <div className="mb-3 flex items-start justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <RouteLine from={trip.fromCity} to={trip.toCity} className="text-base" />
+                  <p className="mt-2 font-mono text-sm tabular text-slate-500">
+                    {fmt(trip.departureAt)} — {fmt(trip.arrivalAt)}
+                  </p>
+                  {trip.vehicle && (
+                    <p className="mt-0.5 text-xs text-slate-400">
+                      {trip.vehicle.model} · <span className="font-mono">{trip.vehicle.plateNumber}</span>
+                    </p>
+                  )}
+                  <p className="mt-1 text-sm text-slate-600">
+                    {t('passengers')}:{' '}
+                    <strong className="font-mono tabular">
+                      {trip._count.bookings}/{trip.totalSeats}
+                    </strong>
+                  </p>
                 </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[trip.status]}`}>{STATUS_ICONS[trip.status]} {trip.status}</span>
+                <Badge tone={STATUS_TONE[trip.status]}>
+                  {STATUS_ICONS[trip.status]} {trip.status}
+                </Badge>
               </div>
 
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => router.push(`/${locale}/driver/trips/${trip.id}`)}
-                  style={{ background: '#f0f4ff', color: '#1a3a5c', padding: '7px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
-                >
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="secondary" onClick={() => router.push(`/${locale}/driver/trips/${trip.id}`)}>
+                  <Users className="h-4 w-4" aria-hidden="true" />
                   {t('passengers')}
-                </button>
+                </Button>
                 {NEXT_STATUS[trip.status] && (
-                  <button
-                    onClick={() => advanceStatus(trip)}
-                    disabled={updating === trip.id}
-                    style={{ background: '#1a3a5c', color: '#fff', padding: '7px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13 }}
-                    className="disabled:opacity-60"
-                  >
-                    {updating === trip.id ? '...' : `→ ${NEXT_STATUS[trip.status]}`}
-                  </button>
+                  <Button size="sm" onClick={() => advanceStatus(trip)} disabled={updating === trip.id}>
+                    {updating === trip.id ? '...' : NEXT_STATUS[trip.status]}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Button>
                 )}
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}
-    </div>
+    </Container>
   );
 }
