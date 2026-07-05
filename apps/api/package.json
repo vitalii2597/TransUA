@@ -42,7 +42,7 @@
     "@types/node": "^20.0.0",
     "@types/passport-jwt": "^4.0.0",
     "@types/pdfkit": "^0.17.5",
-    "prisma": "^5.0.0",
+    "prisma": "^7.8.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   }
