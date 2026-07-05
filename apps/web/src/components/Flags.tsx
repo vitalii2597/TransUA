@@ -2,8 +2,6 @@
  * Simple, crisp SVG flags for the four countries TransUA serves — used instead
  * of emoji so they render identically on every OS. Rounded + hairline ring.
  */
-import type { JSX } from 'react';
-
 type FlagCode = 'ua' | 'pl' | 'se' | 'no';
 
 function Ua() {
