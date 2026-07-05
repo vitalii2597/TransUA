@@ -15,16 +15,16 @@
     "next": "14.2.29",
     "next-intl": "^3.26.0",
     "nextjs-toploader": "^3.9.17",
-    "react": "^19.2.7",
+    "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hook-form": "^7.0.0",
     "socket.io-client": "^4.8.3",
-    "zod": "^4.4.3"
+    "zod": "^3.0.0"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.0",
     "@types/node": "^20.0.0",
-    "@types/react": "^19.2.17",
+    "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "autoprefixer": "^10.5.2",
     "postcss": "^8.0.0",
