@@ -78,8 +78,23 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 - Cash-only payments in current build; Stripe planned but deferred
 - Navbar auth state re-checked on every route change via `usePathname()` dep in `useEffect`
 - Booking pages redirect to login immediately on load if not authenticated
-- Custom Tailwind palette: `fjord` (navy blues), `sun` (amber), `arctic` (light bg)
-- UI uses inline styles with hex values for critical colors (avoids Tailwind JIT cold-start issues)
+- Design system: see **Design System** section below (redesigned to "Nordic Blue" — minimal Scandinavian SaaS)
+
+---
+
+## Design System (Nordic Blue)
+Redesign on branch `feat/redesign/nordic-blue`. Direction: minimal, modern, Scandinavian. **Rolled out across all pages** — foundation + shell + homepage, plus auth (split-layout via `components/auth/AuthAside`), trips search + 4-step booking, dashboard/bookings/parcels, driver dashboard + trip detail, all admin tables, and privacy/terms (shared `components/legal/LegalPage`). Every page now builds from the `components/ui/*` primitives + `brand`/`ink`/`slate` tokens; no legacy `fjord`/`sun` classes remain in page code.
+
+- **Palette:** slate neutrals + single `brand` blue accent (`#2563eb`). `ink` = `#0f172a`. Defined in `tailwind.config.ts` (`brand`, `ink`) + CSS vars in `globals.css`. Prefer Tailwind tokens over inline hex; legacy `fjord`/`sun` palette retired.
+- **Typography** (via `next/font` in `[locale]/layout.tsx`, exposed as CSS vars):
+  - `font-display` — Bricolage Grotesque (headings)
+  - `font-sans` — Inter (body/UI)
+  - `font-mono` — JetBrains Mono (all transport *data*: times, prices, seat #s, `TUA-PKG` codes, locale codes). Use `.tabular` for tabular figures.
+- **UI primitives** in `apps/web/src/components/ui/`: `Button` (primary/secondary/ghost/danger; `href` renders a Link), `Card` (`interactive` for hover lift), `Input`+`Field`, `Badge` (tones), `Container` (max-w-6xl). Build pages from these, not ad-hoc styling.
+- **Signature motif:** `RouteLine` (origin ●——○ destination) — reused on route cards, journey, tickets. Hero showpiece `SprinterJourney` = animated van driving UA→PL→SE→NO along the route.
+- **Flags:** crisp SVG (not emoji) in `components/Flags.tsx`. Canonical order everywhere: **UA · PL · SE · NO**.
+- **Decorative:** `NordicMountains` (snow-capped fjord range + sun + pines) hero backdrop; aurora shimmer + keyframes in `globals.css`.
+- **Rules:** `overflow-x: clip` on `html/body` (no horizontal scroll, keeps sticky nav); all animations respect `prefers-reduced-motion`; visible `:focus-visible` rings; lucide-react for icons.
 
 ---
 

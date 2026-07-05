@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { Users, Bus, Ticket, Package, Wallet } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import api from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import { Spinner } from '@/components/Spinner';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 
 interface Stats {
   users: number;
@@ -18,7 +23,6 @@ interface Stats {
 export default function AdminPage() {
   const t = useTranslations('admin');
   const { locale } = useParams<{ locale: string }>();
-  const router = useRouter();
   const toast = useToast();
   const [stats, setStats] = useState<Stats | null>(null);
 
@@ -28,47 +32,49 @@ export default function AdminPage() {
       .catch(() => toast('Failed to load stats', 'error'));
   }, []);
 
-  const cards = stats ? [
-    { label: t('totalUsers'), value: stats.users, color: '#1a3a5c' },
-    { label: t('totalTrips'), value: stats.trips, color: '#7c3aed' },
-    { label: t('totalBookings'), value: stats.bookings, color: '#059669' },
-    { label: t('totalParcels'), value: stats.parcels, color: '#d97706' },
-    { label: t('revenue'), value: `${stats.revenueUah.toLocaleString()} ₴`, color: '#dc2626' },
-  ] : [];
+  const cards: { label: string; value: string | number; icon: LucideIcon; tint: string }[] = stats
+    ? [
+        { label: t('totalUsers'), value: stats.users, icon: Users, tint: 'bg-brand-50 text-brand-600' },
+        { label: t('totalTrips'), value: stats.trips, icon: Bus, tint: 'bg-violet-50 text-violet-600' },
+        { label: t('totalBookings'), value: stats.bookings, icon: Ticket, tint: 'bg-emerald-50 text-emerald-600' },
+        { label: t('totalParcels'), value: stats.parcels, icon: Package, tint: 'bg-amber-50 text-amber-600' },
+        { label: t('revenue'), value: `${stats.revenueUah.toLocaleString()} ₴`, icon: Wallet, tint: 'bg-rose-50 text-rose-600' },
+      ]
+    : [];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-800 mb-8">{t('title')}</h1>
+    <Container className="max-w-5xl py-10">
+      <h1 className="mb-8 font-display text-3xl font-semibold text-ink">{t('title')}</h1>
 
       {!stats ? (
-        <Spinner />
+        <div className="flex justify-center py-12">
+          <Spinner />
+        </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
+        <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-3">
           {cards.map((c) => (
-            <div key={c.label} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.07)', padding: '20px 24px' }}>
-              <p className="text-sm text-gray-500 mb-1">{c.label}</p>
-              <p className="text-3xl font-bold" style={{ color: c.color }}>{c.value}</p>
-            </div>
+            <Card key={c.label} className="p-5">
+              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${c.tint}`}>
+                <c.icon className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <p className="text-sm text-slate-500">{c.label}</p>
+              <p className="mt-0.5 font-mono text-3xl font-bold tabular text-ink">{c.value}</p>
+            </Card>
           ))}
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           { label: t('users'), path: 'users' },
           { label: t('trips'), path: 'trips' },
           { label: t('parcels'), path: 'parcels' },
         ].map((item) => (
-          <button
-            key={item.path}
-            onClick={() => router.push(`/${locale}/admin/${item.path}`)}
-            style={{ background: '#1a3a5c', color: '#fff', borderRadius: 10, padding: '14px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
-            className="hover:opacity-90 transition"
-          >
+          <Button key={item.path} href={`/${locale}/admin/${item.path}`} size="lg">
             {item.label}
-          </button>
+          </Button>
         ))}
       </div>
-    </div>
+    </Container>
   );
 }

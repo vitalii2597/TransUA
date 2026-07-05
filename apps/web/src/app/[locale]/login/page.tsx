@@ -7,8 +7,12 @@ import { z } from 'zod';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 import api from '@/lib/api';
 import { setTokens } from '@/lib/auth';
+import { AuthAside } from '@/components/auth/AuthAside';
+import { Button } from '@/components/ui/Button';
+import { Input, Field } from '@/components/ui/Input';
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -41,42 +45,55 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">{t('loginTitle')}</h1>
-        {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('email')}</label>
-            <input {...register('email')} type="email" className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500" />
-            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('password')}</label>
-            <div className="relative">
-              <input
-                {...register('password')}
-                type={showPwd ? 'text' : 'password'}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-20 focus:outline-none focus:ring-2 focus:ring-fjord-500"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwd((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-700"
-              >
-                {showPwd ? t('hidePassword') : t('showPassword')}
-              </button>
+    <div className="grid min-h-[calc(100vh-64px)] lg:grid-cols-2">
+      <AuthAside title={t('asideTitle')} subtitle={t('asideSubtitle')} />
+
+      <div className="flex items-center justify-center px-5 py-12 sm:px-8">
+        <div className="w-full max-w-sm">
+          <h1 className="font-display text-2xl font-semibold text-ink">{t('loginTitle')}</h1>
+          <p className="mt-1.5 text-sm text-slate-500">
+            {t('noAccount')}{' '}
+            <Link href={`/${locale}/register`} className="font-medium text-brand-600 hover:text-brand-700">
+              {t('register')}
+            </Link>
+          </p>
+
+          {error && (
+            <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+              {error}
             </div>
-            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-          </div>
-          <button type="submit" disabled={isSubmitting} className="w-full bg-fjord-800 text-white py-2.5 rounded-lg font-semibold hover:bg-fjord-900 transition disabled:opacity-60">
-            {isSubmitting ? tc('loading') : t('login')}
-          </button>
-        </form>
-        <p className="mt-4 text-sm text-gray-500 text-center">
-          {t('noAccount')}{' '}
-          <Link href={`/${locale}/register`} className="text-fjord-700 font-medium hover:underline">{t('register')}</Link>
-        </p>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+            <Field label={t('email')} htmlFor="email" error={errors.email?.message}>
+              <Input id="email" type="email" autoComplete="email" {...register('email')} />
+            </Field>
+
+            <Field label={t('password')} htmlFor="password" error={errors.password?.message}>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPwd ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  className="pr-11"
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd((v) => !v)}
+                  aria-label={showPwd ? t('hidePassword') : t('showPassword')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                >
+                  {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </Field>
+
+            <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
+              {isSubmitting ? tc('loading') : t('login')}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

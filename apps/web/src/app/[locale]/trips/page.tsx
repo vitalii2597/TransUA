@@ -3,8 +3,16 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
+import { Search } from 'lucide-react';
 import api from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input, Field } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
+import { RouteLine } from '@/components/RouteLine';
+import { Spinner } from '@/components/Spinner';
 
 interface Trip {
   id: string;
@@ -51,109 +59,94 @@ export default function TripsPage() {
     });
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">{t('searchTitle')}</h1>
+    <Container className="max-w-3xl py-12">
+      <h1 className="font-display text-3xl font-semibold text-ink">{t('searchTitle')}</h1>
 
-      <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-md p-6 mb-8">
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('from')}</label>
-            <input
-              aria-label={t('from')}
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              placeholder="Kyiv"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500"
-            />
+      <Card className="mt-6 p-6">
+        <form onSubmit={handleSearch}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t('from')} htmlFor="from">
+              <Input id="from" value={from} onChange={(e) => setFrom(e.target.value)} placeholder="Kyiv" />
+            </Field>
+            <Field label={t('to')} htmlFor="to">
+              <Input id="to" value={to} onChange={(e) => setTo(e.target.value)} placeholder="Oslo" />
+            </Field>
+            <Field label={t('date')} htmlFor="date">
+              <Input id="date" type="date" value={date} min={today} onChange={(e) => setDate(e.target.value)} />
+            </Field>
+            <Field label={t('seats')} htmlFor="seats">
+              <Input
+                id="seats"
+                type="number"
+                min={1}
+                max={10}
+                value={seats}
+                onChange={(e) => setSeats(Number(e.target.value))}
+              />
+            </Field>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('to')}</label>
-            <input
-              aria-label={t('to')}
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              placeholder="Oslo"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('date')}</label>
-            <input
-              aria-label={t('date')}
-              type="date"
-              value={date}
-              min={today}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('seats')}</label>
-            <input
-              aria-label={t('seats')}
-              type="number"
-              min={1}
-              max={10}
-              value={seats}
-              onChange={(e) => setSeats(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-fjord-500"
-            />
-          </div>
+          <Button type="submit" disabled={loading} size="lg" className="mt-5 w-full">
+            <Search className="h-4 w-4" aria-hidden="true" />
+            {loading ? tc('loading') : t('search')}
+          </Button>
+        </form>
+      </Card>
+
+      {loading && (
+        <div className="mt-10 flex justify-center">
+          <Spinner />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-fjord-800 text-white py-2.5 rounded-lg font-semibold hover:bg-fjord-900 transition disabled:opacity-60"
-        >
-          {loading ? tc('loading') : t('search')}
-        </button>
-      </form>
+      )}
 
-      {trips !== null && (
-        <div>
-          <h2 className="text-lg font-semibold text-gray-700 mb-4">{t('results')}</h2>
+      {!loading && trips !== null && (
+        <div className="mt-10">
+          <h2 className="text-lg font-semibold text-ink">{t('results')}</h2>
           {trips.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">{t('noTrips')}</p>
+            <p className="py-10 text-center text-slate-500">{t('noTrips')}</p>
           ) : (
-            <div className="space-y-4">
+            <div className="mt-4 space-y-4">
               {trips.map((trip) => (
-                <div key={trip.id} className="bg-white rounded-2xl shadow-md p-5 flex items-center justify-between">
-                  <div>
-                    <p className="text-lg font-bold text-gray-800">
-                      {trip.fromCity} → {trip.toCity}
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {t('departure')}: {fmt(trip.departureAt)}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {t('arrival')}: {fmt(trip.arrivalAt)}
-                    </p>
-                    <p className="text-sm text-green-600 mt-1">
-                      {trip.seatsAvailable} {t('available')}
-                    </p>
+                <Card key={trip.id} interactive className="p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <RouteLine from={trip.fromCity} to={trip.toCity} className="text-base" />
+                      <dl className="mt-3 space-y-1 text-sm text-slate-500">
+                        <div className="flex gap-2">
+                          <dt>{t('departure')}:</dt>
+                          <dd className="font-mono tabular text-slate-600">{fmt(trip.departureAt)}</dd>
+                        </div>
+                        <div className="flex gap-2">
+                          <dt>{t('arrival')}:</dt>
+                          <dd className="font-mono tabular text-slate-600">{fmt(trip.arrivalAt)}</dd>
+                        </div>
+                      </dl>
+                      <Badge tone="success" className="mt-2">
+                        <span className="font-mono tabular">{trip.seatsAvailable}</span> {t('available')}
+                      </Badge>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-mono text-2xl font-semibold tabular text-ink">{trip.priceUah} ₴</p>
+                      <p className="mb-3 text-xs text-slate-400">{t('perSeat')}</p>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          if (!isAuthenticated()) {
+                            router.push(`/${locale}/login`);
+                            return;
+                          }
+                          router.push(`/${locale}/trips/${trip.id}`);
+                        }}
+                      >
+                        {t('book')}
+                      </Button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-fjord-700">{trip.priceUah} ₴</p>
-                    <p className="text-xs text-gray-400 mb-3">{t('perSeat')}</p>
-                    <button
-                      onClick={() => {
-                        if (!isAuthenticated()) {
-                          router.push(`/${locale}/login`);
-                          return;
-                        }
-                        router.push(`/${locale}/trips/${trip.id}`);
-                      }}
-                      className="bg-fjord-800 text-white px-5 py-2 rounded-lg font-semibold hover:bg-fjord-900 transition text-sm"
-                    >
-                      {t('book')}
-                    </button>
-                  </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}
         </div>
       )}
-    </div>
+    </Container>
   );
 }

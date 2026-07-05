@@ -3,10 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
+import { Check, Package } from 'lucide-react';
 import api from '@/lib/api';
 import { isAuthenticated } from '@/lib/auth';
 import { useToast } from '@/components/Toast';
 import { Spinner } from '@/components/Spinner';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input, Field } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
 
 type DestinationCountry = 'NO' | 'SE';
 type ParcelStatus = 'PENDING_PICKUP' | 'PICKED_UP' | 'IN_TRANSIT' | 'DELIVERED' | 'RETURNED';
@@ -36,13 +42,17 @@ function calcClientPrice(weightKg: number, destination: DestinationCountry): Quo
   return { priceEur: Math.round(price * 100) / 100, deliveryDays };
 }
 
-const STATUS_COLORS: Record<ParcelStatus, string> = {
-  PENDING_PICKUP: 'bg-yellow-100 text-yellow-700',
-  PICKED_UP: 'bg-blue-100 text-blue-700',
-  IN_TRANSIT: 'bg-purple-100 text-purple-700',
-  DELIVERED: 'bg-green-100 text-green-700',
-  RETURNED: 'bg-gray-100 text-gray-500',
+const STATUS_TONE: Record<ParcelStatus, 'warning' | 'brand' | 'neutral' | 'success'> = {
+  PENDING_PICKUP: 'warning',
+  PICKED_UP: 'brand',
+  IN_TRANSIT: 'brand',
+  DELIVERED: 'success',
+  RETURNED: 'neutral',
 };
+
+const selectCls =
+  'h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm text-ink ' +
+  'transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30';
 
 export default function ParcelsPage() {
   const t = useTranslations('parcels');
@@ -112,220 +122,203 @@ export default function ParcelsPage() {
     new Date(d).toLocaleDateString(locale === 'uk' ? 'uk-UA' : 'en-GB', { dateStyle: 'medium' });
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 space-y-10">
-
+    <Container className="max-w-2xl space-y-10 py-10">
       {/* Price Calculator */}
-      <section style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: 28 }}>
-        <h2 className="text-xl font-bold text-gray-800 mb-5">{t('calculator')}</h2>
+      <Card className="p-7">
+        <h2 className="mb-5 font-display text-xl font-semibold text-ink">{t('calculator')}</h2>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('weight')}</label>
-            <input
+        <div className="mb-4 grid grid-cols-2 gap-4">
+          <Field label={t('weight')} htmlFor="calc-weight">
+            <Input
+              id="calc-weight"
               type="number"
               min={0.1}
               max={50}
               step={0.1}
               value={weightKg}
               onChange={(e) => setWeightKg(parseFloat(e.target.value) || 0)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">{t('destination')}</label>
+          </Field>
+          <Field label={t('destination')} htmlFor="calc-dest">
             <select
+              id="calc-dest"
               value={destination}
               onChange={(e) => setDestination(e.target.value as DestinationCountry)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={selectCls}
             >
               <option value="NO">{t('norway')}</option>
               <option value="SE">{t('sweden')}</option>
             </select>
-          </div>
+          </Field>
         </div>
 
         {weightKg > 50 ? (
-          <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{t('maxWeight')}</p>
+          <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">{t('maxWeight')}</p>
         ) : quote ? (
-          <div style={{ background: '#f0f4ff', borderRadius: 10, padding: '14px 18px' }} className="flex justify-between items-center">
+          <div className="flex items-center justify-between rounded-xl bg-brand-50 px-5 py-4">
             <div>
-              <p className="text-sm text-gray-500">{t('estimatedPrice')}</p>
-              <p className="text-2xl font-bold" style={{ color: '#1a3a5c' }}>{quote.priceEur} €</p>
+              <p className="text-sm text-slate-500">{t('estimatedPrice')}</p>
+              <p className="font-mono text-2xl font-bold tabular text-brand-700">{quote.priceEur} €</p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-500">{t('deliveryTime')}</p>
-              <p className="text-lg font-semibold text-gray-700">{quote.deliveryDays} {t('days')}</p>
+              <p className="text-sm text-slate-500">{t('deliveryTime')}</p>
+              <p className="font-mono text-lg font-semibold tabular text-ink">
+                {quote.deliveryDays} {t('days')}
+              </p>
             </div>
           </div>
         ) : null}
-      </section>
+      </Card>
 
       {/* Order Form */}
-      <section style={{ background: '#fff', borderRadius: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: 28 }}>
-        <h2 className="text-xl font-bold text-gray-800 mb-5">{t('orderForm')}</h2>
+      <Card className="p-7">
+        <h2 className="mb-5 font-display text-xl font-semibold text-ink">{t('orderForm')}</h2>
 
         {!authed ? (
-          <div className="text-center py-6">
-            <p className="text-gray-500 mb-4">{t('loginPrompt')}</p>
-            <button
-              onClick={() => router.push(`/${locale}/login`)}
-              style={{ background: '#1a3a5c', color: '#fff', padding: '10px 28px', borderRadius: 8, fontWeight: 600, border: 'none', cursor: 'pointer' }}
-            >
-              {t('loginBtn')}
-            </button>
+          <div className="py-6 text-center">
+            <p className="mb-4 text-slate-500">{t('loginPrompt')}</p>
+            <Button onClick={() => router.push(`/${locale}/login`)}>{t('loginBtn')}</Button>
           </div>
         ) : successCode ? (
-          <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: 32 }} className="text-center">
-            <div style={{ fontSize: 40, marginBottom: 12 }}>✓</div>
-            <p className="text-green-700 font-bold text-xl mb-3">{t('success')}</p>
-            <p className="text-gray-500 text-sm mb-1">{t('trackingCode')}</p>
-            <p className="text-2xl font-mono font-bold text-gray-800 mt-1 mb-4 select-all">{successCode}</p>
-            <button
-              onClick={() => setSuccessCode('')}
-              style={{ background: '#1a3a5c', color: '#fff', padding: '8px 24px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600 }}
-            >
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-8 text-center">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <Check className="h-7 w-7" aria-hidden="true" />
+            </div>
+            <p className="mb-3 text-xl font-bold text-emerald-700">{t('success')}</p>
+            <p className="text-sm text-slate-500">{t('trackingCode')}</p>
+            <p className="mb-4 mt-1 select-all font-mono text-2xl font-bold tabular text-ink">{successCode}</p>
+            <Button variant="secondary" onClick={() => setSuccessCode('')}>
               + {t('orderForm')}
-            </button>
+            </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('weight')}</label>
-                <input
+              <Field label={t('weight')} htmlFor="ord-weight">
+                <Input
+                  id="ord-weight"
                   type="number"
                   min={0.1}
                   max={50}
                   step={0.1}
                   value={weightKg}
                   onChange={(e) => setWeightKg(parseFloat(e.target.value) || 0)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('destination')}</label>
+              </Field>
+              <Field label={t('destination')} htmlFor="ord-dest">
                 <select
+                  id="ord-dest"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value as DestinationCountry)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={selectCls}
                 >
                   <option value="NO">{t('norway')}</option>
                   <option value="SE">{t('sweden')}</option>
                 </select>
-              </div>
+              </Field>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('pickupAddress')}</label>
-              <input
-                type="text"
+            <Field label={t('pickupAddress')} htmlFor="ord-pickup">
+              <Input
+                id="ord-pickup"
                 value={pickupAddress}
                 onChange={(e) => setPickupAddress(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 minLength={5}
               />
-            </div>
+            </Field>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('deliveryAddress')}</label>
-              <input
-                type="text"
+            <Field label={t('deliveryAddress')} htmlFor="ord-delivery">
+              <Input
+                id="ord-delivery"
                 value={deliveryAddress}
                 onChange={(e) => setDeliveryAddress(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
                 minLength={5}
               />
-            </div>
+            </Field>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('recipientName')}</label>
-                <input
-                  type="text"
+              <Field label={t('recipientName')} htmlFor="ord-rname">
+                <Input
+                  id="ord-rname"
                   value={recipientName}
                   onChange={(e) => setRecipientName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                   minLength={2}
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('recipientPhone')}</label>
-                <input
+              </Field>
+              <Field label={t('recipientPhone')} htmlFor="ord-rphone">
+                <Input
+                  id="ord-rphone"
                   type="tel"
                   value={recipientPhone}
                   onChange={(e) => setRecipientPhone(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                   minLength={5}
                 />
-              </div>
+              </Field>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t('description')}</label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            <Field label={t('description')} htmlFor="ord-desc">
+              <Input id="ord-desc" value={description} onChange={(e) => setDescription(e.target.value)} />
+            </Field>
 
             {quote && (
-              <div style={{ background: '#f0f4ff', borderRadius: 8, padding: '10px 14px' }} className="flex justify-between text-sm">
-                <span className="text-gray-600">{t('estimatedPrice')}:</span>
-                <span className="font-bold" style={{ color: '#1a3a5c' }}>{quote.priceEur} € · {quote.deliveryDays} {t('days')}</span>
+              <div className="flex justify-between rounded-lg bg-brand-50 px-4 py-2.5 text-sm">
+                <span className="text-slate-600">{t('estimatedPrice')}:</span>
+                <span className="font-mono font-bold tabular text-brand-700">
+                  {quote.priceEur} € · {quote.deliveryDays} {t('days')}
+                </span>
               </div>
             )}
 
             {error && <p className="text-sm text-red-600">{error}</p>}
 
-            <button
-              type="submit"
-              disabled={submitting || weightKg > 50}
-              style={{ background: '#1a3a5c', color: '#fff', width: '100%', padding: '12px', borderRadius: 8, fontWeight: 600, border: 'none', cursor: 'pointer' }}
-              className="disabled:opacity-60"
-            >
+            <Button type="submit" disabled={submitting || weightKg > 50} size="lg" className="w-full">
               {submitting ? tc('loading') : t('submit')}
-            </button>
+            </Button>
           </form>
         )}
-      </section>
+      </Card>
 
       {/* My Parcels */}
       {authed && (
         <section>
-          <h2 className="text-xl font-bold text-gray-800 mb-4">{t('myParcels')}</h2>
+          <h2 className="mb-4 font-display text-xl font-semibold text-ink">{t('myParcels')}</h2>
 
           {parcels === null ? (
-            <Spinner />
+            <div className="flex justify-center py-8">
+              <Spinner />
+            </div>
           ) : parcels.length === 0 ? (
-            <p className="text-gray-500 text-sm">{t('empty')}</p>
+            <p className="text-sm text-slate-500">{t('empty')}</p>
           ) : (
             <div className="space-y-3">
               {parcels.map((p) => (
-                <div key={p.id} style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.07)', padding: '16px 20px' }}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-mono text-sm font-bold text-gray-700">{p.trackingCode}</p>
-                      <p className="text-sm text-gray-600 mt-0.5">{p.recipientName} · {p.weightKg} kg · {p.priceEur} €</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{p.deliveryAddress}</p>
-                      <p className="text-xs text-gray-400">{fmt(p.createdAt)}</p>
+                <Card key={p.id} className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-1.5 font-mono text-sm font-bold text-ink">
+                        <Package className="h-4 w-4 text-brand-600" aria-hidden="true" />
+                        {p.trackingCode}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {p.recipientName} · <span className="font-mono tabular">{p.weightKg} kg</span> ·{' '}
+                        <span className="font-mono tabular">{p.priceEur} €</span>
+                      </p>
+                      <p className="mt-0.5 truncate text-xs text-slate-400">{p.deliveryAddress}</p>
+                      <p className="font-mono text-xs tabular text-slate-400">{fmt(p.createdAt)}</p>
                     </div>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${STATUS_COLORS[p.status]}`}>
-                      {t(p.status)}
-                    </span>
+                    <Badge tone={STATUS_TONE[p.status]}>{t(p.status)}</Badge>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           )}
         </section>
       )}
-    </div>
+    </Container>
   );
 }

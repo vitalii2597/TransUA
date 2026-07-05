@@ -6,6 +6,10 @@ import api from '@/lib/api';
 import { useToast } from '@/components/Toast';
 import { Spinner } from '@/components/Spinner';
 import { Pagination } from '@/components/Pagination';
+import { Container } from '@/components/ui/Container';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
 
 type UserRole = 'PASSENGER' | 'DRIVER' | 'ADMIN';
 
@@ -22,10 +26,10 @@ interface User {
 const ROLES: UserRole[] = ['PASSENGER', 'DRIVER', 'ADMIN'];
 const PAGE_SIZE = 20;
 
-const ROLE_COLORS: Record<UserRole, string> = {
-  PASSENGER: 'bg-blue-100 text-blue-700',
-  DRIVER: 'bg-yellow-100 text-yellow-700',
-  ADMIN: 'bg-red-100 text-red-700',
+const ROLE_TONE: Record<UserRole, 'brand' | 'warning' | 'danger'> = {
+  PASSENGER: 'brand',
+  DRIVER: 'warning',
+  ADMIN: 'danger',
 };
 
 const ROLE_ICONS: Record<UserRole, string> = {
@@ -33,6 +37,10 @@ const ROLE_ICONS: Record<UserRole, string> = {
   DRIVER: '◑',
   ADMIN: '●',
 };
+
+const selectCls =
+  'rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-ink ' +
+  'transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30';
 
 export default function AdminUsersPage() {
   const t = useTranslations('admin');
@@ -66,65 +74,77 @@ export default function AdminUsersPage() {
     }
   }
 
-  if (users === null) return <Spinner />;
+  if (users === null)
+    return (
+      <div className="flex justify-center py-20">
+        <Spinner />
+      </div>
+    );
 
   const paginated = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">{t('users')}</h1>
-      <div style={{ background: '#fff', borderRadius: 12, boxShadow: '0 1px 8px rgba(0,0,0,0.07)', overflow: 'hidden' }}>
-        <table className="w-full text-sm">
-          <thead style={{ background: '#f8fafc' }}>
-            <tr>
-              {[t('name'), t('email'), t('phone'), t('role'), t('actions')].map((h) => (
-                <th key={h} className="text-left px-4 py-3 font-semibold text-gray-600">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {paginated.length === 0 ? (
+    <Container className="max-w-5xl py-10">
+      <h1 className="mb-6 font-display text-3xl font-semibold text-ink">{t('users')}</h1>
+      <Card className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50">
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-gray-400">{tc('noData')}</td>
+                {[t('name'), t('email'), t('phone'), t('role'), t('actions')].map((h) => (
+                  <th key={h} className="whitespace-nowrap px-4 py-3 text-left font-semibold text-slate-600">
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ) : (
-              paginated.map((u) => (
-                <tr key={u.id} className="border-t border-gray-100">
-                  <td className="px-4 py-3 font-medium text-gray-800">{u.firstName} {u.lastName}</td>
-                  <td className="px-4 py-3 text-gray-600">{u.email}</td>
-                  <td className="px-4 py-3 text-gray-600">{u.phone}</td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full mb-1 ${ROLE_COLORS[u.role]}`}>
-                      {ROLE_ICONS[u.role]} {u.role}
-                    </span>
-                    <br />
-                    <select
-                      value={pendingRoles[u.id] ?? u.role}
-                      onChange={(e) => setPendingRoles((prev) => ({ ...prev, [u.id]: e.target.value as UserRole }))}
-                      className="border border-gray-300 rounded px-2 py-1 text-sm mt-1"
-                    >
-                      {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    {pendingRoles[u.id] && pendingRoles[u.id] !== u.role && (
-                      <button
-                        onClick={() => saveRole(u.id)}
-                        disabled={saving === u.id}
-                        style={{ background: '#1a3a5c', color: '#fff', padding: '4px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12 }}
-                        className="disabled:opacity-60"
-                      >
-                        {saving === u.id ? '...' : t('save')}
-                      </button>
-                    )}
+            </thead>
+            <tbody>
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-slate-400">
+                    {tc('noData')}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                paginated.map((u) => (
+                  <tr key={u.id} className="border-t border-slate-100">
+                    <td className="px-4 py-3 font-medium text-ink">
+                      {u.firstName} {u.lastName}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{u.email}</td>
+                    <td className="px-4 py-3 font-mono tabular text-slate-600">{u.phone}</td>
+                    <td className="px-4 py-3">
+                      <Badge tone={ROLE_TONE[u.role]} className="mb-1">
+                        {ROLE_ICONS[u.role]} {u.role}
+                      </Badge>
+                      <br />
+                      <select
+                        value={pendingRoles[u.id] ?? u.role}
+                        onChange={(e) => setPendingRoles((prev) => ({ ...prev, [u.id]: e.target.value as UserRole }))}
+                        className={`mt-1 ${selectCls}`}
+                      >
+                        {ROLES.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      {pendingRoles[u.id] && pendingRoles[u.id] !== u.role && (
+                        <Button size="sm" onClick={() => saveRole(u.id)} disabled={saving === u.id}>
+                          {saving === u.id ? '...' : t('save')}
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
         <Pagination total={users.length} page={page} pageSize={PAGE_SIZE} onChange={setPage} />
-      </div>
-    </div>
+      </Card>
+    </Container>
   );
 }
