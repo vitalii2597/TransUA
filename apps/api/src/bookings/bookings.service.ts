@@ -26,6 +26,16 @@ export class BookingsService {
 
     try {
       const booking = await this.prisma.$transaction(async (tx) => {
+        // A previously cancelled booking still occupies this seat row because of
+        // the @@unique([tripId, seatNumber]) constraint. Reuse it instead of
+        // colliding, so a cancelled seat can be booked again.
+        const existing = await tx.booking.findUnique({
+          where: { tripId_seatNumber: { tripId: dto.tripId, seatNumber: dto.seatNumber } },
+        });
+        if (existing && existing.status === 'CONFIRMED') {
+          throw new ConflictException({ code: 'SEAT_TAKEN', message: 'This seat is already booked' });
+        }
+
         const payment = await tx.payment.create({
           data: {
             payerId: userId,
@@ -36,7 +46,31 @@ export class BookingsService {
           },
         });
 
-        const newBooking = await tx.booking.create({
+        const passengers = dto.passengers?.length
+          ? { create: dto.passengers.map((p) => ({ fullName: p.fullName, documentNumber: p.documentNumber, phone: p.phone })) }
+          : undefined;
+
+        if (existing) {
+          // Reset the cancelled seat into a fresh confirmed booking. Explicit
+          // null clears any stale address/luggage data from the old booking.
+          await tx.bookingPassenger.deleteMany({ where: { bookingId: existing.id } });
+          return tx.booking.update({
+            where: { id: existing.id },
+            data: {
+              userId,
+              passengerName: dto.passengerName,
+              status: 'CONFIRMED',
+              pickupAddress: dto.pickupAddress ?? null,
+              dropoffAddress: dto.dropoffAddress ?? null,
+              luggageKg: dto.luggageKg ?? null,
+              paymentId: payment.id,
+              passengers,
+            },
+            include: { trip: true, payment: true, passengers: true },
+          });
+        }
+
+        return tx.booking.create({
           data: {
             userId,
             tripId: dto.tripId,
@@ -46,14 +80,10 @@ export class BookingsService {
             dropoffAddress: dto.dropoffAddress,
             luggageKg: dto.luggageKg,
             paymentId: payment.id,
-            passengers: dto.passengers?.length
-              ? { create: dto.passengers.map((p) => ({ fullName: p.fullName, documentNumber: p.documentNumber, phone: p.phone })) }
-              : undefined,
+            passengers,
           },
           include: { trip: true, payment: true, passengers: true },
         });
-
-        return newBooking;
       });
 
       return { data: booking, error: null };
