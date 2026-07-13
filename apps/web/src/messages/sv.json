@@ -152,7 +152,15 @@
     "date": "Datum",
     "arrival": "Ankomst",
     "noData": "Inga poster",
-    "confirmRoleChange": "Ändra rollen för den här användaren?"
+    "confirmRoleChange": "Ändra rollen för den här användaren?",
+    "scheduleRuns": "Turschema",
+    "addRun": "Lägg till resa",
+    "month": "Månad",
+    "runNumber": "Resa nr.",
+    "edit": "Redigera",
+    "delete": "Ta bort",
+    "confirmDeleteRun": "Ta bort den här resan?",
+    "cancelEdit": "Avbryt redigering"
   },
   "driver": {
     "title": "Förarens panel",

@@ -152,7 +152,15 @@
     "date": "Дата",
     "arrival": "Прибуття",
     "noData": "Немає записів",
-    "confirmRoleChange": "Змінити роль цього користувача?"
+    "confirmRoleChange": "Змінити роль цього користувача?",
+    "scheduleRuns": "Графік рейсів",
+    "addRun": "Додати рейс",
+    "month": "Місяць",
+    "runNumber": "№ рейсу",
+    "edit": "Редагувати",
+    "delete": "Видалити",
+    "confirmDeleteRun": "Видалити цей рейс?",
+    "cancelEdit": "Скасувати редагування"
   },
   "driver": {
     "title": "Кабінет водія",

@@ -12,6 +12,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 import { AdminModule } from './admin/admin.module';
 import { DriverModule } from './driver/driver.module';
 import { GpsModule } from './gps/gps.module';
+import { ScheduleRunsModule } from './schedule-runs/schedule-runs.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { GpsModule } from './gps/gps.module';
     AdminModule,
     DriverModule,
     GpsModule,
+    ScheduleRunsModule,
   ],
 })
 export class AppModule {}

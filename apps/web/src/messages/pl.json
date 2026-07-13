@@ -152,7 +152,15 @@
     "date": "Data",
     "arrival": "Przyjazd",
     "noData": "Brak wpisów",
-    "confirmRoleChange": "Zmienić rolę tego użytkownika?"
+    "confirmRoleChange": "Zmienić rolę tego użytkownika?",
+    "scheduleRuns": "Harmonogram kursów",
+    "addRun": "Dodaj kurs",
+    "month": "Miesiąc",
+    "runNumber": "Nr kursu",
+    "edit": "Edytuj",
+    "delete": "Usuń",
+    "confirmDeleteRun": "Usunąć ten kurs?",
+    "cancelEdit": "Anuluj edycję"
   },
   "driver": {
     "title": "Panel kierowcy",

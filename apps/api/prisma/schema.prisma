@@ -196,3 +196,21 @@ model ParcelStatusLog {
   note      String?
   loggedAt  DateTime     @default(now())
 }
+
+// Published Ukraine <-> Norway courier+passenger cycle (no per-seat booking).
+// Only parcelsDate is required to create a run — the other four dates follow
+// a fixed offset from it and are auto-derived unless explicitly overridden.
+model ScheduleRun {
+  id               String   @id @default(uuid())
+  month            String // ISO yyyy-mm, section grouping on the public page
+  number           Int
+  parcelsDate      DateTime
+  parcelsCutoff    DateTime
+  passengersDate   DateTime
+  destinationStart DateTime
+  destinationEnd   DateTime
+  returnDate       DateTime
+  createdAt        DateTime @default(now())
+
+  @@unique([month, number])
+}

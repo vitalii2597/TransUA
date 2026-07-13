@@ -2,6 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { PatchRoleDto } from './dto/patch-role.dto';
+import { CreateScheduleRunDto } from './dto/create-schedule-run.dto';
+import { UpdateScheduleRunDto } from './dto/update-schedule-run.dto';
+
+const DAY_MS = 86400000;
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * DAY_MS);
+}
 
 @Injectable()
 export class AdminService {
@@ -91,5 +98,64 @@ export class AdminService {
       this.prisma.parcelOrder.count(),
     ]);
     return { data: parcels, meta: { page, limit, total }, error: null };
+  }
+
+  async getScheduleRuns(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const [runs, total] = await Promise.all([
+      this.prisma.scheduleRun.findMany({
+        skip,
+        take: limit,
+        orderBy: { parcelsDate: 'desc' },
+      }),
+      this.prisma.scheduleRun.count(),
+    ]);
+    return { data: runs, meta: { page, limit, total }, error: null };
+  }
+
+  async createScheduleRun(dto: CreateScheduleRunDto) {
+    const parcelsDate = new Date(dto.parcelsDate);
+    const parcelsCutoff = dto.parcelsCutoff ? new Date(dto.parcelsCutoff) : addDays(parcelsDate, -1);
+    const passengersDate = dto.passengersDate ? new Date(dto.passengersDate) : addDays(parcelsDate, 2);
+    const destinationStart = dto.destinationStart ? new Date(dto.destinationStart) : addDays(passengersDate, 2);
+    const destinationEnd = dto.destinationEnd ? new Date(dto.destinationEnd) : addDays(destinationStart, 3);
+    const returnDate = dto.returnDate ? new Date(dto.returnDate) : destinationEnd;
+
+    const run = await this.prisma.scheduleRun.create({
+      data: {
+        month: dto.month,
+        number: dto.number,
+        parcelsDate,
+        parcelsCutoff,
+        passengersDate,
+        destinationStart,
+        destinationEnd,
+        returnDate,
+      },
+    });
+    return { data: run, error: null };
+  }
+
+  async updateScheduleRun(runId: string, dto: UpdateScheduleRunDto) {
+    const existing = await this.prisma.scheduleRun.findUnique({ where: { id: runId } });
+    if (!existing) throw new NotFoundException({ code: 'SCHEDULE_RUN_NOT_FOUND', message: 'Schedule run not found' });
+
+    const dateFields = ['parcelsDate', 'parcelsCutoff', 'passengersDate', 'destinationStart', 'destinationEnd', 'returnDate'] as const;
+    const data: Record<string, unknown> = {};
+    if (dto.month !== undefined) data.month = dto.month;
+    if (dto.number !== undefined) data.number = dto.number;
+    for (const field of dateFields) {
+      if (dto[field] !== undefined) data[field] = new Date(dto[field] as string);
+    }
+
+    const updated = await this.prisma.scheduleRun.update({ where: { id: runId }, data });
+    return { data: updated, error: null };
+  }
+
+  async deleteScheduleRun(runId: string) {
+    const existing = await this.prisma.scheduleRun.findUnique({ where: { id: runId } });
+    if (!existing) throw new NotFoundException({ code: 'SCHEDULE_RUN_NOT_FOUND', message: 'Schedule run not found' });
+    await this.prisma.scheduleRun.delete({ where: { id: runId } });
+    return { data: { id: runId }, error: null };
   }
 }

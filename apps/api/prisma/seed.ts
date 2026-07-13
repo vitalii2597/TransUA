@@ -6,6 +6,7 @@ async function main() {
   await prisma.booking.deleteMany();
   await prisma.trip.deleteMany();
   await prisma.route.deleteMany();
+  await prisma.scheduleRun.deleteMany();
 
   const routes = await prisma.route.createManyAndReturn({
     data: [
@@ -46,7 +47,64 @@ async function main() {
     ],
   });
 
-  console.log(`Seeded ${routes.length} routes and 11 trips`);
+  // Real published Ukraine <-> Norway courier+passenger cycle (from the
+  // WhatsApp broadcast this used to be hand-copied from into trips/page.tsx).
+  await prisma.scheduleRun.createMany({
+    data: [
+      {
+        month: '2026-07',
+        number: 1,
+        parcelsDate: new Date('2026-07-05'),
+        parcelsCutoff: new Date('2026-07-04'),
+        passengersDate: new Date('2026-07-07'),
+        destinationStart: new Date('2026-07-09'),
+        destinationEnd: new Date('2026-07-12'),
+        returnDate: new Date('2026-07-12'),
+      },
+      {
+        month: '2026-07',
+        number: 2,
+        parcelsDate: new Date('2026-07-19'),
+        parcelsCutoff: new Date('2026-07-18'),
+        passengersDate: new Date('2026-07-21'),
+        destinationStart: new Date('2026-07-23'),
+        destinationEnd: new Date('2026-07-26'),
+        returnDate: new Date('2026-07-26'),
+      },
+      {
+        month: '2026-08',
+        number: 1,
+        parcelsDate: new Date('2026-08-02'),
+        parcelsCutoff: new Date('2026-08-01'),
+        passengersDate: new Date('2026-08-04'),
+        destinationStart: new Date('2026-08-06'),
+        destinationEnd: new Date('2026-08-09'),
+        returnDate: new Date('2026-08-09'),
+      },
+      {
+        month: '2026-08',
+        number: 2,
+        parcelsDate: new Date('2026-08-16'),
+        parcelsCutoff: new Date('2026-08-15'),
+        passengersDate: new Date('2026-08-18'),
+        destinationStart: new Date('2026-08-20'),
+        destinationEnd: new Date('2026-08-23'),
+        returnDate: new Date('2026-08-23'),
+      },
+      {
+        month: '2026-08',
+        number: 3,
+        parcelsDate: new Date('2026-08-30'),
+        parcelsCutoff: new Date('2026-08-29'),
+        passengersDate: new Date('2026-09-01'),
+        destinationStart: new Date('2026-09-03'),
+        destinationEnd: new Date('2026-09-06'),
+        returnDate: new Date('2026-09-06'),
+      },
+    ],
+  });
+
+  console.log(`Seeded ${routes.length} routes, 11 trips, and 5 schedule runs`);
 }
 
 main()

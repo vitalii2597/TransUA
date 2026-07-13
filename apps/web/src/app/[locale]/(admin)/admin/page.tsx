@@ -69,6 +69,7 @@ export default function AdminPage() {
           { label: t('users'), path: 'users' },
           { label: t('trips'), path: 'trips' },
           { label: t('parcels'), path: 'parcels' },
+          { label: t('scheduleRuns'), path: 'schedule-runs' },
         ].map((item) => (
           <Button key={item.path} href={`/${locale}/admin/${item.path}`} size="lg">
             {item.label}

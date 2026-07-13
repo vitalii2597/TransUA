@@ -152,7 +152,15 @@
     "date": "Dato",
     "arrival": "Ankomst",
     "noData": "Ingen oppføringer",
-    "confirmRoleChange": "Endre rollen til denne brukeren?"
+    "confirmRoleChange": "Endre rollen til denne brukeren?",
+    "scheduleRuns": "Ruteplan",
+    "addRun": "Legg til tur",
+    "month": "Måned",
+    "runNumber": "Tur nr.",
+    "edit": "Rediger",
+    "delete": "Slett",
+    "confirmDeleteRun": "Slette denne turen?",
+    "cancelEdit": "Avbryt redigering"
   },
   "driver": {
     "title": "Sjåførpanel",

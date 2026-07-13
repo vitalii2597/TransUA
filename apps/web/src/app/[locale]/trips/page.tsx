@@ -1,8 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Package, Users, MapPin, Undo2, type LucideIcon } from 'lucide-react';
+import api from '@/lib/api';
+import { useToast } from '@/components/Toast';
+import { Spinner } from '@/components/Spinner';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -23,65 +27,33 @@ interface Run {
   phases: RunPhase[];
 }
 
-// Published manually from the current WhatsApp schedule broadcast — there is no
-// hourly/seat-level booking for this corridor, just a recurring dated round-trip cycle.
-const RUNS: Run[] = [
-  {
-    id: '2026-07-1',
-    month: '2026-07',
-    number: 1,
+interface ScheduleRunRow {
+  id: string;
+  month: string;
+  number: number;
+  parcelsDate: string;
+  parcelsCutoff: string;
+  passengersDate: string;
+  destinationStart: string;
+  destinationEnd: string;
+  returnDate: string;
+}
+
+// Published from the admin-managed schedule (see /admin/schedule-runs) — there is
+// no hourly/seat-level booking for this corridor, just a recurring dated round-trip cycle.
+function toRun(row: ScheduleRunRow): Run {
+  return {
+    id: row.id,
+    month: row.month,
+    number: row.number,
     phases: [
-      { type: 'parcels', date: '2026-07-05', cutoff: '2026-07-04' },
-      { type: 'passengers', date: '2026-07-07' },
-      { type: 'destination', date: '2026-07-09', endDate: '2026-07-12' },
-      { type: 'return', date: '2026-07-12' },
+      { type: 'parcels', date: row.parcelsDate.slice(0, 10), cutoff: row.parcelsCutoff.slice(0, 10) },
+      { type: 'passengers', date: row.passengersDate.slice(0, 10) },
+      { type: 'destination', date: row.destinationStart.slice(0, 10), endDate: row.destinationEnd.slice(0, 10) },
+      { type: 'return', date: row.returnDate.slice(0, 10) },
     ],
-  },
-  {
-    id: '2026-07-2',
-    month: '2026-07',
-    number: 2,
-    phases: [
-      { type: 'parcels', date: '2026-07-19', cutoff: '2026-07-18' },
-      { type: 'passengers', date: '2026-07-21' },
-      { type: 'destination', date: '2026-07-23', endDate: '2026-07-26' },
-      { type: 'return', date: '2026-07-26' },
-    ],
-  },
-  {
-    id: '2026-08-1',
-    month: '2026-08',
-    number: 1,
-    phases: [
-      { type: 'parcels', date: '2026-08-02', cutoff: '2026-08-01' },
-      { type: 'passengers', date: '2026-08-04' },
-      { type: 'destination', date: '2026-08-06', endDate: '2026-08-09' },
-      { type: 'return', date: '2026-08-09' },
-    ],
-  },
-  {
-    id: '2026-08-2',
-    month: '2026-08',
-    number: 2,
-    phases: [
-      { type: 'parcels', date: '2026-08-16', cutoff: '2026-08-15' },
-      { type: 'passengers', date: '2026-08-18' },
-      { type: 'destination', date: '2026-08-20', endDate: '2026-08-23' },
-      { type: 'return', date: '2026-08-23' },
-    ],
-  },
-  {
-    id: '2026-08-3',
-    month: '2026-08',
-    number: 3,
-    phases: [
-      { type: 'parcels', date: '2026-08-30', cutoff: '2026-08-29' },
-      { type: 'passengers', date: '2026-09-01' },
-      { type: 'destination', date: '2026-09-03', endDate: '2026-09-06' },
-      { type: 'return', date: '2026-09-06' },
-    ],
-  },
-];
+  };
+}
 
 const PHASE_META: Record<PhaseType, { icon: LucideIcon; labelKey: string }> = {
   parcels: { icon: Package, labelKey: 'parcelDeparture' },
@@ -140,10 +112,29 @@ function groupByMonth(runs: Run[]) {
 export default function TripsPage() {
   const t = useTranslations('trips');
   const { locale } = useParams<{ locale: string }>();
+  const toast = useToast();
   const intlLocale = { uk: 'uk-UA', no: 'nb-NO', sv: 'sv-SE', pl: 'pl-PL' }[locale] ?? 'en-GB';
 
+  const [runs, setRuns] = useState<Run[] | null>(null);
+
+  useEffect(() => {
+    api.get('/schedule-runs')
+      .then((res) => setRuns((res.data.data as ScheduleRunRow[]).map(toRun)))
+      .catch(() => {
+        setRuns([]);
+        toast('Failed to load schedule', 'error');
+      });
+  }, []);
+
   const today = startOfDay(new Date());
-  const groups = groupByMonth(RUNS);
+  const groups = groupByMonth(runs ?? []);
+
+  if (runs === null)
+    return (
+      <div className="flex justify-center py-24">
+        <Spinner />
+      </div>
+    );
 
   return (
     <Container className="max-w-3xl py-12">

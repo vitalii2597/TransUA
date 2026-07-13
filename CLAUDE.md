@@ -79,7 +79,8 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 - Navbar auth state re-checked on every route change via `usePathname()` dep in `useEffect`
 - Booking pages redirect to login immediately on load if not authenticated
 - Design system: see **Design System** section below (redesigned to "Nordic Blue" — minimal Scandinavian SaaS)
-- `/[locale]/trips` reflects how the route actually operates: a recurring Ukraine ↔ Norway courier+passenger cycle published a couple of months ahead (no per-seat/per-hour booking exists for it). The schedule is a hardcoded `RUNS` array in `trips/page.tsx` (month, run number, 4 dated phases) — update that array directly when the client publishes a new month, no DB/admin UI for it yet. The `Trip`/booking/seat-picker model still exists and is unchanged (`GET /trips`, `/trips/:id`, seat picker) but is no longer surfaced through a public search page.
+- `/[locale]/trips` reflects how the route actually operates: a recurring Ukraine ↔ Norway courier+passenger cycle published a couple of months ahead (no per-seat/per-hour booking exists for it). The schedule is DB-backed (`ScheduleRun` model, see below) and managed at `/[locale]/admin/schedule-runs` — the public page fetches `GET /schedule-runs` on load. The `Trip`/booking/seat-picker model still exists and is unchanged (`GET /trips`, `/trips/:id`, seat picker) but is no longer surfaced through a public search page.
+- **ScheduleRun dates auto-derive from one date.** The corridor's 4 phases follow a fixed offset from the parcels departure date: cutoff = `parcelsDate - 1d`, passengers = `parcelsDate + 2d`, destination start = `passengers + 2d`, destination end = `start + 3d`, return = destination end. `POST /admin/schedule-runs` only requires `month`, `number`, `parcelsDate` — the rest are computed server-side (`AdminService.createScheduleRun`) unless explicitly overridden in the same request. `PATCH /admin/schedule-runs/:id` sets fields as given, no re-derivation (for correcting a typo'd date without recomputing the others).
 
 ---
 
@@ -133,6 +134,12 @@ model Booking {
   @@unique([tripId, seatNumber])
 }
 model BookingPassenger { id, bookingId, fullName, documentNumber?, phone? }
+
+model ScheduleRun {
+  id, month, number
+  parcelsDate, parcelsCutoff, passengersDate, destinationStart, destinationEnd, returnDate
+  @@unique([month, number])
+}
 ```
 
 ### Target schema (future phases)
@@ -194,6 +201,15 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 | POST | `/trips` | admin | 🔲 Phase 4 |
 | PATCH | `/trips/:id/status` | driver | 🔲 Phase 4 |
 
+### Schedule Runs `/api/schedule-runs`, `/api/admin/schedule-runs`
+| Method | Endpoint | Auth | Status |
+|---|---|---|---|
+| GET | `/schedule-runs` | public | ✅ built (feeds `/trips` public page, ordered by parcelsDate asc) |
+| GET | `/admin/schedule-runs` | admin | ✅ built (paginated) |
+| POST | `/admin/schedule-runs` | admin | ✅ built (`month`, `number`, `parcelsDate` required; other 4 dates auto-derived unless overridden) |
+| PATCH | `/admin/schedule-runs/:id` | admin | ✅ built (sets given fields as-is, no re-derivation) |
+| DELETE | `/admin/schedule-runs/:id` | admin | ✅ built |
+
 ### Bookings `/api/bookings`
 | Method | Endpoint | Auth | Status |
 |---|---|---|---|
@@ -250,7 +266,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]` — Scandinavian hero with Sprinter van SVG, route cards, features strip, CTA
 - `/[locale]/login` — login form
 - `/[locale]/register` — register form
-- `/[locale]/trips` — published schedule (2026-07 redesign): static, hand-maintained timetable grouped by month. Each "run" (Ukraine ↔ Norway courier + passenger cycle) is a vertical status timeline — parcel departure (+ drop-off cutoff) → passenger departure → days at destination → return — with done/current/upcoming states. No search form, no seats/price/booking on this page (see Architecture Decisions).
+- `/[locale]/trips` — published schedule (2026-07 redesign, DB-backed since 2026-07-13): timetable grouped by month, fetched from `GET /schedule-runs`. Each "run" (Ukraine ↔ Norway courier + passenger cycle) is a vertical status timeline — parcel departure (+ drop-off cutoff) → passenger departure → days at destination → return — with done/current/upcoming states. No search form, no seats/price/booking on this page (see Architecture Decisions).
 - `/[locale]/trips/[id]` — 4-step booking: Seat → Passengers → Payment → Confirm (auth redirect on load)
 - `/[locale]/(dashboard)/dashboard` — profile with i18n labels + quick links to bookings/trips
 - `/[locale]/(dashboard)/bookings` — my bookings + cancel + PDF download + empty CTA
@@ -262,6 +278,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]/(admin)/admin/users` — user list + role management
 - `/[locale]/(admin)/admin/trips` — trip list + create + status management
 - `/[locale]/(admin)/admin/parcels` — parcel overview
+- `/[locale]/(admin)/admin/schedule-runs` — manage the published `/trips` schedule: list + create (month/number/parcelsDate only, other 4 dates auto-derived) + inline edit + delete
 - `/[locale]/privacy` — privacy policy (GDPR)
 - `/[locale]/terms` — terms of service
 
