@@ -2,9 +2,18 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+
+// Refresh tokens are high-entropy signed JWTs, not user-chosen secrets, so a fast
+// hash is the right tool here (unlike passwords, which need bcrypt's deliberate
+// slowness against brute force). Hashing means a leaked DB alone can't be replayed
+// as a session the way a plaintext token could.
+function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
 
 @Injectable()
 export class AuthService {
@@ -55,14 +64,14 @@ export class AuthService {
 
   async refresh(token: string) {
     const stored = await this.prisma.refreshToken.findUnique({
-      where: { token },
+      where: { tokenHash: hashToken(token) },
       include: { user: true },
     });
     if (!stored || stored.expiresAt < new Date()) {
       throw new UnauthorizedException({ code: 'INVALID_REFRESH_TOKEN', message: 'Invalid or expired refresh token' });
     }
 
-    await this.prisma.refreshToken.delete({ where: { token } });
+    await this.prisma.refreshToken.delete({ where: { id: stored.id } });
     const tokens = await this.generateTokens(stored.user.id, stored.user.email, stored.user.role);
     await this.saveRefreshToken(stored.user.id, tokens.refreshToken);
 
@@ -70,7 +79,7 @@ export class AuthService {
   }
 
   async logout(userId: string, token: string) {
-    await this.prisma.refreshToken.deleteMany({ where: { userId, token } });
+    await this.prisma.refreshToken.deleteMany({ where: { userId, tokenHash: hashToken(token) } });
     return { data: { success: true }, error: null };
   }
 
@@ -92,6 +101,6 @@ export class AuthService {
   private async saveRefreshToken(userId: string, token: string) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
-    await this.prisma.refreshToken.create({ data: { userId, token, expiresAt } });
+    await this.prisma.refreshToken.create({ data: { userId, tokenHash: hashToken(token), expiresAt } });
   }
 }
