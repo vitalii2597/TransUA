@@ -1,13 +1,16 @@
 {
   "nav": {
     "home": "Hjem",
-    "trips": "Turer",
+    "trips": "Rutetabell",
     "parcels": "Pakker",
     "login": "Logg inn",
     "register": "Registrer deg",
     "dashboard": "Min side",
     "bookings": "Mine billetter",
-    "logout": "Logg ut"
+    "logout": "Logg ut",
+    "callUs": "Ring oss",
+    "chatViber": "Skriv på Viber",
+    "chatTelegram": "Skriv på Telegram"
   },
   "auth": {
     "login": "Logg inn",
@@ -44,10 +47,51 @@
     "confirmLogout": "Er du sikker på at du vil logge ut?"
   },
   "home": {
-    "heroRoute": "Ukraina / Polen ↔ Sverige / Norge",
-    "tagline": "Raskt, pålitelig, enkelt",
-    "searchTrips": "Finn tur",
-    "sendParcel": "Send pakke"
+    "corridor": "Ukraina / Polen ↔ Sverige / Norge",
+    "headline": "Buss og pakker Ukraina ↔ Norge — hver måned, dør til dør",
+    "tagline": "Kontant til sjåføren, ingen forskuddsbetaling. Vi henter pakker og passasjerer rett hjemme.",
+    "bookSeat": "Bestill plass",
+    "orderPickup": "Bestill pakkehenting",
+    "nextRunEyebrow": "Neste avgang",
+    "nextRunTitle": "Tur nr. {number} · {month}",
+    "nextRunLoading": "Laster rutetabell…",
+    "nextRunEmpty": "Rutetabellen er ikke publisert ennå — ring oss, og vi finner en dato.",
+    "nextRunCutoff": "Innlevering av pakker til {date}",
+    "nextRunDeparture": "Avgang fra Ukraina {date}",
+    "nextRunArrival": "I Norge {date}",
+    "nextRunReturn": "Returtur {date}",
+    "viewFullSchedule": "Hele rutetabellen",
+    "sellingPointsEyebrow": "Hvorfor velge oss",
+    "cashTitle": "Kontant betaling",
+    "cashDesc": "Du betaler sjåføren under reisen — ingen forskuddsbetaling eller kort.",
+    "cashFrom": "plass — fra [PRIS] €",
+    "sprinterTitle": "Mercedes Sprinter",
+    "sprinterDesc": "Komfortable minibusser med klimaanlegg og gode seter.",
+    "doorTitle": "Dør til dør",
+    "doorDesc": "Vi henter og leverer rett på adressen din langs ruten.",
+    "parcelTitle": "Pakker til familien",
+    "parcelDesc": "Pakker følges opp fra henting til levering.",
+    "parcelFrom": "fra [PRIS] €",
+    "popularRoutesEyebrow": "Populære ruter",
+    "popularRoutesTitle": "Faste avganger begge veier",
+    "allRoutes": "Hele rutetabellen",
+    "howItWorksEyebrow": "Hvordan det fungerer",
+    "howItWorksTitle": "Fra forespørsel til reise — 4 steg",
+    "step1Title": "Send en forespørsel",
+    "step1Desc": "Ring, skriv på Viber eller Telegram, eller fyll ut formularet på siden.",
+    "step2Title": "Bekreft plassen",
+    "step2Desc": "Vi kontakter deg og bekrefter dato, plass og hentested.",
+    "step3Title": "Betal kontant",
+    "step3Desc": "Du betaler sjåføren på reisedagen. Ingen forskuddsbetaling.",
+    "step4Title": "Reis hjem",
+    "step4Desc": "Dør til dør i en komfortabel Mercedes Sprinter.",
+    "ctaTitle": "Klar for å reise hjem?",
+    "ctaSubtitle": "Har du spørsmål? Ring oss — vi svarer og finner nærmeste avgang.",
+    "ctaButton": "Bestill plass",
+    "trustEyebrow": "Kundene våre stoler på oss",
+    "trustYears": "[X] år i bransjen",
+    "trustTrips": "[X XXX]+ turer gjennomført",
+    "trustReviews": "[X,X]★ gjennomsnittlig vurdering"
   },
   "trips": {
     "searchTitle": "Finn en tur",
@@ -214,5 +258,17 @@
     "RETURNED": "Returnert",
     "weightTooHigh": "Vekten overstiger 50 kg — kontakt oss per telefon",
     "maxWeight": "Maks vekt: 50 kg. Mer — kontakt oss per telefon."
+  },
+  "footer": {
+    "tagline": "Buss og pakker mellom Ukraina og Skandinavia.",
+    "travel": "Reise",
+    "account": "Konto",
+    "legal": "Juridisk",
+    "countriesServe": "Land vi betjener",
+    "contactEyebrow": "Kontakt",
+    "companyPlaceholder": "[Firmanavn] AS",
+    "regNumberPlaceholder": "Org.nr: [XXXXXXXX]",
+    "addressPlaceholder": "[Kontoradresse]",
+    "rights": "Alle rettigheter forbeholdt."
   }
 }

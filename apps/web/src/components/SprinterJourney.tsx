@@ -72,51 +72,61 @@ function SprinterVan() {
   );
 }
 
-export function SprinterJourney() {
+export function SprinterJourney({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="relative h-40 w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-sky-50 to-slate-50 shadow-card sm:h-44">
-      {/* faint fjord skyline */}
-      <svg
-        viewBox="0 0 400 60"
-        preserveAspectRatio="none"
-        className="absolute bottom-0 left-0 h-16 w-full text-slate-200"
-        aria-hidden="true"
-      >
-        <path
-          d="M0,60 L0,34 L40,14 L80,32 L120,10 L165,30 L210,8 L255,28 L300,12 L345,30 L400,16 L400,60 Z"
-          fill="currentColor"
-          opacity="0.55"
-        />
-        <path
-          d="M0,60 L0,44 L55,26 L110,42 L170,22 L230,40 L290,24 L350,40 L400,30 L400,60 Z"
-          fill="currentColor"
-        />
-      </svg>
+    <div
+      className={`relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-sky-50 to-slate-50 shadow-card ${
+        compact ? 'h-16 sm:h-20' : 'h-40 sm:h-44'
+      }`}
+    >
+      {/* faint fjord skyline — dropped in compact mode, no room for it */}
+      {!compact && (
+        <svg
+          viewBox="0 0 400 60"
+          preserveAspectRatio="none"
+          className="absolute bottom-0 left-0 h-16 w-full text-slate-200"
+          aria-hidden="true"
+        >
+          <path
+            d="M0,60 L0,34 L40,14 L80,32 L120,10 L165,30 L210,8 L255,28 L300,12 L345,30 L400,16 L400,60 Z"
+            fill="currentColor"
+            opacity="0.55"
+          />
+          <path
+            d="M0,60 L0,44 L55,26 L110,42 L170,22 L230,40 L290,24 L350,40 L400,30 L400,60 Z"
+            fill="currentColor"
+          />
+        </svg>
+      )}
 
       {/* origin · transit · destination — each flag + name on one line, in UA→PL→SE→NO order.
-          Full names on desktop, short codes on mobile so nothing collides. */}
-      <span className="absolute left-[6%] bottom-4 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 sm:text-[11px]">
-        <Flag code="ua" />
-        <span className="sm:hidden">UA</span>
-        <span className="hidden sm:inline">Ukraine</span>
-      </span>
-      <span className="absolute left-1/2 bottom-4 flex -translate-x-1/2 items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 sm:text-[11px]">
-        <Flag code="pl" />
-        <span className="sm:hidden">PL</span>
-        <span className="hidden sm:inline">Poland</span>
-      </span>
-      <span className="absolute right-[6%] bottom-4 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 sm:text-[11px]">
-        <Flag code="se" />
-        <span className="sm:hidden">SE</span>
-        <span className="hidden sm:inline">Sweden</span>
-        <span className="text-slate-300">·</span>
-        <Flag code="no" />
-        <span className="sm:hidden">NO</span>
-        <span className="hidden sm:inline">Norway</span>
-      </span>
+          Full names on desktop, short codes on mobile so nothing collides. Dropped in compact mode. */}
+      {!compact && (
+        <>
+          <span className="absolute left-[6%] bottom-4 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 sm:text-[11px]">
+            <Flag code="ua" />
+            <span className="sm:hidden">UA</span>
+            <span className="hidden sm:inline">Ukraine</span>
+          </span>
+          <span className="absolute left-1/2 bottom-4 flex -translate-x-1/2 items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 sm:text-[11px]">
+            <Flag code="pl" />
+            <span className="sm:hidden">PL</span>
+            <span className="hidden sm:inline">Poland</span>
+          </span>
+          <span className="absolute right-[6%] bottom-4 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-slate-600 sm:text-[11px]">
+            <Flag code="se" />
+            <span className="sm:hidden">SE</span>
+            <span className="hidden sm:inline">Sweden</span>
+            <span className="text-slate-300">·</span>
+            <Flag code="no" />
+            <span className="sm:hidden">NO</span>
+            <span className="hidden sm:inline">Norway</span>
+          </span>
+        </>
+      )}
 
       {/* route baseline + trail + markers (origin ● · Poland ○ · destination ○) */}
-      <div className="absolute left-[6%] right-[6%] top-[42%]">
+      <div className={`absolute left-[6%] right-[6%] ${compact ? 'top-1/2' : 'top-[42%]'}`}>
         <div className="h-0 border-t-2 border-dashed border-slate-300" />
         <div className="trail-grow absolute inset-x-0 top-0 h-0.5 -translate-y-px bg-brand-500" />
         <span className="absolute -left-1.5 top-0 h-3 w-3 -translate-y-1/2 rounded-full bg-brand-600 ring-4 ring-brand-600/15" />
@@ -124,8 +134,11 @@ export function SprinterJourney() {
         <span className="absolute -right-1.5 top-0 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-brand-600 bg-white" />
       </div>
 
-      {/* the van */}
-      <div className="van-drive absolute" style={{ top: 'calc(42% - 47px)' }}>
+      {/* the van — scaled down and re-centered on the route line in compact mode */}
+      <div
+        className="van-drive absolute"
+        style={compact ? { top: '50%', transform: 'translateY(-50%) scale(0.55)', transformOrigin: 'center' } : { top: 'calc(42% - 47px)' }}
+      >
         <div className="van-bob">
           <SprinterVan />
         </div>

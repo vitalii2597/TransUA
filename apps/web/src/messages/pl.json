@@ -1,13 +1,16 @@
 {
   "nav": {
     "home": "Strona główna",
-    "trips": "Przejazdy",
+    "trips": "Rozkład",
     "parcels": "Paczki",
     "login": "Zaloguj się",
     "register": "Rejestracja",
     "dashboard": "Panel",
     "bookings": "Moje bilety",
-    "logout": "Wyloguj się"
+    "logout": "Wyloguj się",
+    "callUs": "Zadzwoń do nas",
+    "chatViber": "Napisz na Viber",
+    "chatTelegram": "Napisz na Telegram"
   },
   "auth": {
     "login": "Zaloguj się",
@@ -44,10 +47,51 @@
     "confirmLogout": "Czy na pewno chcesz się wylogować?"
   },
   "home": {
-    "heroRoute": "Ukraina / Polska ↔ Szwecja / Norwegia",
-    "tagline": "Szybko, niezawodnie, wygodnie",
-    "searchTrips": "Znajdź przejazd",
-    "sendParcel": "Wyślij paczkę"
+    "corridor": "Ukraina / Polska ↔ Szwecja / Norwegia",
+    "headline": "Autobus i paczki Ukraina ↔ Norwegia — co miesiąc, od drzwi do drzwi",
+    "tagline": "Płatność gotówką u kierowcy, bez przedpłaty. Odbieramy paczki i pasażerów prosto z domu.",
+    "bookSeat": "Zarezerwuj miejsce",
+    "orderPickup": "Zamów odbiór paczki",
+    "nextRunEyebrow": "Najbliższy kurs",
+    "nextRunTitle": "Kurs nr {number} · {month}",
+    "nextRunLoading": "Wczytujemy rozkład…",
+    "nextRunEmpty": "Rozkład nie został jeszcze opublikowany — zadzwoń do nas, znajdziemy termin.",
+    "nextRunCutoff": "Przyjmowanie paczek do {date}",
+    "nextRunDeparture": "Wyjazd z Ukrainy {date}",
+    "nextRunArrival": "W Norwegii {date}",
+    "nextRunReturn": "Powrót {date}",
+    "viewFullSchedule": "Cały rozkład",
+    "sellingPointsEyebrow": "Dlaczego my",
+    "cashTitle": "Płatność gotówką",
+    "cashDesc": "Płacisz kierowcy w trakcie podróży — bez przedpłaty i kart.",
+    "cashFrom": "miejsce — od [CENA] €",
+    "sprinterTitle": "Mercedes Sprinter",
+    "sprinterDesc": "Wygodne busy z klimatyzacją i komfortowymi fotelami.",
+    "doorTitle": "Od drzwi do drzwi",
+    "doorDesc": "Odbieramy i dowozimy prosto pod Twój adres na trasie.",
+    "parcelTitle": "Paczki dla rodziny",
+    "parcelDesc": "Paczki pod kontrolą od odbioru do dostawy.",
+    "parcelFrom": "od [CENA] €",
+    "popularRoutesEyebrow": "Popularne trasy",
+    "popularRoutesTitle": "Regularne kursy w obie strony",
+    "allRoutes": "Cały rozkład",
+    "howItWorksEyebrow": "Jak to działa",
+    "howItWorksTitle": "Od zgłoszenia do podróży — 4 kroki",
+    "step1Title": "Zostaw zgłoszenie",
+    "step1Desc": "Zadzwoń, napisz na Viber lub Telegram albo wypełnij formularz na stronie.",
+    "step2Title": "Potwierdź miejsce",
+    "step2Desc": "Skontaktujemy się i ustalimy termin, miejsce oraz adres odbioru.",
+    "step3Title": "Płatność gotówką",
+    "step3Desc": "Płacisz kierowcy w dniu wyjazdu. Przedpłata nie jest wymagana.",
+    "step4Title": "Jedź do domu",
+    "step4Desc": "Od drzwi do drzwi w komfortowym Mercedes Sprinter.",
+    "ctaTitle": "Gotowy na podróż do domu?",
+    "ctaSubtitle": "Masz pytania? Zadzwoń do nas — odpowiemy i podamy najbliższy termin.",
+    "ctaButton": "Zarezerwuj miejsce",
+    "trustEyebrow": "Klienci nam ufają",
+    "trustYears": "[X] lat na rynku",
+    "trustTrips": "[X XXX]+ zrealizowanych kursów",
+    "trustReviews": "[X,X]★ średnia ocena"
   },
   "trips": {
     "searchTitle": "Znajdź przejazd",
@@ -214,5 +258,17 @@
     "RETURNED": "Zwrócona",
     "weightTooHigh": "Waga przekracza 50 kg — skontaktuj się z nami telefonicznie",
     "maxWeight": "Maks. waga: 50 kg. Więcej — skontaktuj się telefonicznie."
+  },
+  "footer": {
+    "tagline": "Autobusy i paczki między Ukrainą a Skandynawią.",
+    "travel": "Podróże",
+    "account": "Konto",
+    "legal": "Informacje prawne",
+    "countriesServe": "Kraje, które obsługujemy",
+    "contactEyebrow": "Kontakt",
+    "companyPlaceholder": "[Nazwa firmy] Sp. z o.o.",
+    "regNumberPlaceholder": "NIP/Nr rej.: [XXXXXXXX]",
+    "addressPlaceholder": "[Adres biura]",
+    "rights": "Wszelkie prawa zastrzeżone."
   }
 }

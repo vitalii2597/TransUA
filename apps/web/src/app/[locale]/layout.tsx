@@ -5,9 +5,12 @@ import type { Metadata } from 'next';
 import '../globals.css';
 import { Inter, Bricolage_Grotesque, JetBrains_Mono } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-sans' });
+// Inter/JetBrains Mono ship Cyrillic glyphs — needed for the uk locale. Bricolage Grotesque
+// (display font) has no Cyrillic subset on Google Fonts; Cyrillic headings fall through to
+// `font-sans` (Inter) via the `display` font-family stack in tailwind.config.ts, by design.
+const inter = Inter({ subsets: ['latin', 'cyrillic'], display: 'swap', variable: '--font-sans' });
 const bricolage = Bricolage_Grotesque({ subsets: ['latin'], display: 'swap', variable: '--font-display' });
-const jetbrains = JetBrains_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-mono' });
+const jetbrains = JetBrains_Mono({ subsets: ['latin', 'cyrillic'], display: 'swap', variable: '--font-mono' });
 const fontVars = `${inter.variable} ${bricolage.variable} ${jetbrains.variable}`;
 
 import Navbar from '@/components/layout/Navbar';
@@ -62,7 +65,7 @@ export default async function LocaleLayout({
         <link rel="icon" href="/favicon.svg" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
-      <body className="min-h-screen flex flex-col overflow-x-clip bg-white text-ink antialiased">
+      <body className="min-h-screen flex flex-col overflow-x-clip bg-white font-sans text-ink antialiased">
         <NextIntlClientProvider messages={messages}>
           <NextTopLoader color="#2563eb" height={2} showSpinner={false} />
           <ToastProvider>
