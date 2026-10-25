@@ -232,7 +232,7 @@ export default function AdminScheduleRunsPage() {
             <tbody>
               {runs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
                     {tc('noData')}
                   </td>
                 </tr>
@@ -332,7 +332,7 @@ export default function AdminScheduleRunsPage() {
                           <td className="px-4 py-3 font-mono tabular">{run.number}</td>
                           <td className="px-4 py-3">
                             <div className="font-mono tabular text-ink">{fmt(run.parcelsDate)}</div>
-                            <div className="font-mono tabular text-xs text-slate-400">{fmt(run.parcelsCutoff)}</div>
+                            <div className="font-mono tabular text-xs text-slate-500">{fmt(run.parcelsCutoff)}</div>
                           </td>
                           <td className="whitespace-nowrap px-4 py-3 font-mono tabular text-ink">
                             {fmt(run.passengersDate)}

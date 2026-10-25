@@ -2,9 +2,9 @@ import { forwardRef } from 'react';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 
 const inputBase =
-  'w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm text-ink placeholder:text-slate-400 ' +
+  'w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm text-ink placeholder:text-slate-500 ' +
   'transition-colors focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 ' +
-  'disabled:bg-slate-50 disabled:text-slate-400';
+  'disabled:bg-slate-50 disabled:text-slate-500';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className = '', ...props }, ref) {

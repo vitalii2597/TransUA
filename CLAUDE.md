@@ -69,7 +69,8 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 
 ## Architecture Decisions
 - JWT access token (15m) + refresh token (7d) stored in cookies via `js-cookie`
-- Refresh tokens persisted in DB (`RefreshToken` table), deleted on logout
+- Refresh tokens persisted in DB (`RefreshToken` table) as a SHA-256 hash, never the raw token; deleted on logout
+- `DELETE /users/me` fulfils GDPR erasure for real: wraps the full delete in a transaction that unlinks/removes owned vehicles, bookings (cascades passengers), payments, and parcels (cascades status logs) before deleting the user row — a bare `user.delete()` would FK-violate for any account with activity
 - All API responses: `{ data, error }` envelope; meta for pagination: `{ data, meta, error }`
 - Global `HttpExceptionFilter` → `{ error: { code, message } }`
 - Next.js `[locale]` routing — all pages under `app/[locale]/`
@@ -114,7 +115,7 @@ model User {
   id, firstName, lastName, phone, email, passwordHash, role, preferredLang
   refreshTokens, bookings, vehicles, driverTrips, payments
 }
-model RefreshToken { id, userId, token, expiresAt }
+model RefreshToken { id, userId, tokenHash, expiresAt }  // tokenHash = SHA-256 of the signed JWT, never stored raw
 
 model Route {
   id, originCountry, destinationCountry, originCity, destinationCity, durationHours, active
@@ -182,7 +183,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 |---|---|---|---|
 | GET | `/users/me` | JWT | ✅ built |
 | PATCH | `/users/me` | JWT | ✅ built |
-| DELETE | `/users/me` | JWT | 🔲 Phase 4 (GDPR) |
+| DELETE | `/users/me` | JWT | ✅ built (GDPR erasure — cascades bookings/payments/parcels/vehicles in one transaction, not just the user row) |
 | GET | `/users` | admin | 🔲 Phase 4 |
 | PATCH | `/users/:id/role` | admin | 🔲 Phase 4 |
 
@@ -342,7 +343,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - Vehicle management API (CRUD, driver/admin roles)
 - `DELETE /users/me` — GDPR account deletion
 - `helmet()` security headers on all routes
-- `@nestjs/throttler` — global 30 req/min, stricter 5 req/min on `/auth/*`
+- `@nestjs/throttler` — bound globally via `APP_GUARD` at 200 req/min, stricter 5 req/min on `/auth/*`. `@SkipThrottle()` exempts authenticated role-gated controllers where bursty legitimate use is expected (`admin`, `driver`, `vehicles` — GPS pings, `users`); public/write endpoints flagged in a 2026-10-25 audit (`trips`, `routes`, `schedule-runs`, `bookings`, `parcels`) are not exempted
 - E2E tests (Playwright): navigation + booking flow in `e2e/booking-flow.spec.ts`
 - SEO: `sitemap.ts` (all locale × static paths), `robots.ts`, JSON-LD (TravelAgency) in layout
 - Privacy policy page `/[locale]/privacy`

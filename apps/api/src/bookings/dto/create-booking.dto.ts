@@ -38,6 +38,8 @@ export class CreateBookingDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(0)
+  @Max(100)
   luggageKg?: number;
 
   @IsOptional()

@@ -84,7 +84,7 @@ export default function AdminParcelsPage() {
             <tbody>
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
                     {tc('noData')}
                   </td>
                 </tr>
@@ -95,12 +95,12 @@ export default function AdminParcelsPage() {
                     <td className="px-4 py-3">
                       {p.sender.firstName} {p.sender.lastName}
                       <br />
-                      <span className="font-mono text-xs tabular text-slate-400">{p.sender.phone}</span>
+                      <span className="font-mono text-xs tabular text-slate-500">{p.sender.phone}</span>
                     </td>
                     <td className="px-4 py-3">
                       {p.recipientName}
                       <br />
-                      <span className="text-xs text-slate-400">{p.deliveryAddress}</span>
+                      <span className="text-xs text-slate-500">{p.deliveryAddress}</span>
                     </td>
                     <td className="px-4 py-3 font-mono tabular">{p.weightKg} kg</td>
                     <td className="px-4 py-3 font-mono tabular">{p.priceEur} €</td>

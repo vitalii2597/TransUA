@@ -174,7 +174,7 @@ export default function AdminTripsPage() {
             <tbody>
               {trips.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
+                  <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
                     {tc('noData')}
                   </td>
                 </tr>

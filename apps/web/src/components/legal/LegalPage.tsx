@@ -14,7 +14,7 @@ export function LegalPage({
   return (
     <Container className="max-w-2xl py-12">
       <h1 className="font-display text-3xl font-semibold text-ink">{title}</h1>
-      <p className="mb-8 mt-2 text-sm text-slate-400">{updated}</p>
+      <p className="mb-8 mt-2 text-sm text-slate-500">{updated}</p>
 
       <Card className="divide-y divide-slate-100 p-0">
         {sections.map((s) => (

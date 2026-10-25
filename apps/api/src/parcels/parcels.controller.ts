@@ -1,5 +1,4 @@
 import { Controller, Post, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
 import { ParcelsService } from './parcels.service';
 import { CreateParcelDto } from './dto/create-parcel.dto';
 import { UpdateParcelStatusDto } from './dto/update-parcel-status.dto';
@@ -9,7 +8,6 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
-@SkipThrottle()
 @Controller('parcels')
 export class ParcelsController {
   constructor(private parcelsService: ParcelsService) {}
