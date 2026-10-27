@@ -67,6 +67,20 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 
 ---
 
+## Development Workflow (subagents)
+Project agents live in `.claude/agents/`: `developer`, `code-reviewer`, `tester`, `security-auditor`.
+
+**After every non-trivial code change, run this pipeline before reporting the work as done:**
+1. **`code-reviewer`** — on the change. Fix the confirmed findings (or explain why one is wrong), then re-run the reviewer only if the fixes were substantial.
+2. **`tester` + `security-auditor` in parallel** — once review passes. Fix app bugs they report; the tester updates `e2e/` itself.
+3. Report to the user: what changed, each agent's verdict, what was fixed, and what was deliberately left open.
+
+- **Skip the pipeline** for docs-only, copy/i18n-text-only, or config/comment-only changes, and say that it was skipped.
+- **`developer`** is optional: use it to delegate a well-scoped feature (or several independent ones in parallel); the main session still runs the pipeline on its output.
+- Agents never commit or push — the main session does, after the pipeline passes and the user agrees.
+
+---
+
 ## Architecture Decisions
 - JWT access token (15m) + refresh token (7d) stored in cookies via `js-cookie`
 - Refresh tokens persisted in DB (`RefreshToken` table) as a SHA-256 hash, never the raw token; deleted on logout
