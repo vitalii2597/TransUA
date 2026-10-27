@@ -34,7 +34,7 @@ test.describe('Booking flow', () => {
 test.describe('Navigation', () => {
   test('home page loads', async ({ page }) => {
     await page.goto(BASE);
-    await expect(page.getByRole('link', { name: 'TransUA' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'TransUA' })).toBeVisible();
   });
 
   test('parcels page shows calculator', async ({ page }) => {

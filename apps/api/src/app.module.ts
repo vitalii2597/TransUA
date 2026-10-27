@@ -18,7 +18,11 @@ import { ScheduleRunsModule } from './schedule-runs/schedule-runs.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{ ttl: 60000, limit: 200 }]),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60000, limit: 200 }],
+      // Local-only escape hatch: the e2e suite registers/logs in far more than 5×/min.
+      skipIf: () => process.env.THROTTLE_DISABLED === 'true',
+    }),
     PrismaModule,
     AuthModule,
     UsersModule,

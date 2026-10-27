@@ -7,7 +7,7 @@ test.describe('Registration', () => {
   test('shows validation errors on empty submit', async ({ page }) => {
     await page.goto(`${BASE}/register`);
     await page.getByRole('button', { name: /реєстр/i }).click();
-    await expect(page.locator('p.text-red-500').first()).toBeVisible();
+    await expect(page.locator('p.text-red-600').first()).toBeVisible();
   });
 
   test('shows error when ToS not accepted', async ({ page }) => {
@@ -19,7 +19,7 @@ test.describe('Registration', () => {
     await page.locator('input[type="password"]').fill('TestPass123!');
     // Do NOT check ToS
     await page.getByRole('button', { name: /реєстр/i }).click();
-    await expect(page.locator('text=terms')).toBeVisible();
+    await expect(page.getByText('You must accept the terms of service')).toBeVisible();
   });
 
   test('full registration redirects to dashboard', async ({ page }) => {
@@ -46,7 +46,7 @@ test.describe('Registration', () => {
     await page.locator('input[type="password"]').fill('TestPass123!');
     await page.locator('#tosAccepted').check();
     await page.getByRole('button', { name: /реєстр/i }).click();
-    await expect(page.locator('text=email')).toBeVisible({ timeout: 8000 });
+    await expect(page.getByText('Цей email вже зайнятий')).toBeVisible({ timeout: 8000 });
   });
 });
 

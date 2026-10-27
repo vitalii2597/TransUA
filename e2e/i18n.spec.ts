@@ -7,7 +7,7 @@ test.describe('i18n — all locales load', () => {
   for (const locale of LOCALES) {
     test(`home page loads in ${locale}`, async ({ page }) => {
       await page.goto(`http://localhost:3000/${locale}`);
-      await expect(page.getByRole('link', { name: 'TransUA' })).toBeVisible({ timeout: 8000 });
+      await expect(page.getByRole('banner').getByRole('link', { name: 'TransUA' })).toBeVisible({ timeout: 8000 });
       // Check the URL is correct
       expect(page.url()).toContain(`/${locale}`);
     });

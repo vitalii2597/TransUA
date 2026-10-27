@@ -349,7 +349,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `DELETE /users/me` — GDPR account deletion
 - `helmet()` security headers on all routes
 - `@nestjs/throttler` — bound globally via `APP_GUARD` at 200 req/min, stricter 5 req/min on `/auth/*`. `@SkipThrottle()` exempts authenticated role-gated controllers where bursty legitimate use is expected (`admin`, `driver`, `vehicles` — GPS pings, `users`); public/write endpoints flagged in a 2026-10-25 audit (`trips`, `routes`, `schedule-runs`, `bookings`, `parcels`) are not exempted
-- E2E tests (Playwright): navigation + booking flow in `e2e/booking-flow.spec.ts`
+- E2E tests (Playwright, 68 tests in `e2e/`): auth, booking flow, i18n, parcels, trips, UI, password reset. Run with `pnpm test:e2e` (reuses running dev servers). Needs `THROTTLE_DISABLED="true"` in `apps/api/.env`, otherwise the 5/min auth limit fails registration/login tests. `e2e/helpers/db.ts` writes reset tokens straight to the DB (the suite can't read emails). Only `@playwright/test` is a dependency — adding the bare `playwright` package at a different version breaks the runner ("did not expect test.describe() to be called here")
 - SEO: `sitemap.ts` (all locale × static paths), `robots.ts`, JSON-LD (TravelAgency) in layout
 - Privacy policy page `/[locale]/privacy`
 - Terms of service page `/[locale]/terms`
@@ -444,6 +444,7 @@ SENDGRID_API_KEY=""
 SENDGRID_FROM_EMAIL="noreply@transua.no"
 SENDGRID_FROM_NAME="TransUA"
 MAIL_LOG_TO_CONSOLE="true"   # local dev only: print emails (reset links) to console when no SendGrid key
+THROTTLE_DISABLED="true"     # local dev/e2e only: skip rate limiting; never on a deployed server
 
 # Deferred
 STRIPE_SECRET_KEY=""
