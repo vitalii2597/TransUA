@@ -11,6 +11,14 @@ function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * DAY_MS);
 }
 
+// Query-string paging → safe integers. Infinity/1e20 would otherwise reach Prisma as `skip` and 500.
+function clampPaging(page: number, limit: number) {
+  return {
+    page: Number.isFinite(page) ? Math.min(10_000, Math.max(1, Math.floor(page))) : 1,
+    limit: Number.isFinite(limit) ? Math.min(100, Math.max(1, Math.floor(limit))) : 20,
+  };
+}
+
 // @@unique([month, number]) violation → 409 the admin UI can explain, instead of a generic 500.
 function rethrowDuplicateRun(err: unknown): never {
   if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
@@ -37,16 +45,30 @@ export class AdminService {
     };
   }
 
-  async getUsers(page = 1, limit = 20) {
+  async getUsers(page = 1, limit = 20, q?: string) {
+    ({ page, limit } = clampPaging(page, limit));
     const skip = (page - 1) * limit;
+    // Every word must match some field, so "Vitalii Mayuk" finds first + last name.
+    const words = q?.trim().split(/\s+/).filter(Boolean).slice(0, 5) ?? []; // cap: each word adds 4 ILIKEs
+    const where: Prisma.UserWhereInput = {
+      AND: words.map((w) => ({
+        OR: [
+          { email: { contains: w, mode: 'insensitive' as const } },
+          { firstName: { contains: w, mode: 'insensitive' as const } },
+          { lastName: { contains: w, mode: 'insensitive' as const } },
+          { phone: { contains: w } },
+        ],
+      })),
+    };
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
+        where,
         skip,
         take: limit,
         select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true, preferredLang: true, createdAt: true },
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.user.count(),
+      this.prisma.user.count({ where }),
     ]);
     return { data: users, meta: { page, limit, total }, error: null };
   }
@@ -166,7 +188,49 @@ export class AdminService {
   async deleteScheduleRun(runId: string) {
     const existing = await this.prisma.scheduleRun.findUnique({ where: { id: runId } });
     if (!existing) throw new NotFoundException({ code: 'SCHEDULE_RUN_NOT_FOUND', message: 'Schedule run not found' });
-    await this.prisma.scheduleRun.delete({ where: { id: runId } });
+    // Open (NEW/CONFIRMED) requests block deletion; cancelled ones go with the run.
+    const hasRequests = () =>
+      new ConflictException({
+        code: 'SCHEDULE_RUN_HAS_REQUESTS',
+        message: 'This run has open booking requests — cancel them before deleting it',
+      });
+    await this.prisma
+      .$transaction(async (tx) => {
+        const open = await tx.bookingRequest.count({ where: { scheduleRunId: runId, status: { not: 'CANCELLED' } } });
+        if (open > 0) throw hasRequests();
+        await tx.bookingRequest.deleteMany({ where: { scheduleRunId: runId } });
+        await tx.scheduleRun.delete({ where: { id: runId } });
+      })
+      .catch((err) => {
+        // A request created between the count and the delete trips the Restrict FK.
+        if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2003') throw hasRequests();
+        throw err;
+      });
     return { data: { id: runId }, error: null };
+  }
+
+  async getBookingRequests(page = 1, limit = 20) {
+    ({ page, limit } = clampPaging(page, limit));
+    const skip = (page - 1) * limit;
+    const [requests, total] = await Promise.all([
+      this.prisma.bookingRequest.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          scheduleRun: { select: { month: true, number: true, passengersDate: true, returnDate: true } },
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
+      }),
+      this.prisma.bookingRequest.count(),
+    ]);
+    return { data: requests, meta: { page, limit, total }, error: null };
+  }
+
+  async patchBookingRequestStatus(id: string, status: 'NEW' | 'CONFIRMED' | 'CANCELLED') {
+    const existing = await this.prisma.bookingRequest.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException({ code: 'BOOKING_REQUEST_NOT_FOUND', message: 'Booking request not found' });
+    const updated = await this.prisma.bookingRequest.update({ where: { id }, data: { status } });
+    return { data: updated, error: null };
   }
 }

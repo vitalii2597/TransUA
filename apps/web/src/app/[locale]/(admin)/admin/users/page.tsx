@@ -10,6 +10,7 @@ import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { Input } from '@/components/ui/Input';
 
 type UserRole = 'PASSENGER' | 'DRIVER' | 'ADMIN';
 
@@ -50,12 +51,40 @@ export default function AdminUsersPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [pendingRoles, setPendingRoles] = useState<Record<string, UserRole>>({});
   const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [query, setQuery] = useState('');
+  const [search, setSearch] = useState('');
 
+  // Debounce typing so each keystroke doesn't fire a request. Only a changed search resets
+  // to page 1 — otherwise the mount timer (or typing then deleting) would undo a page click.
   useEffect(() => {
-    api.get('/admin/users')
-      .then((res) => setUsers(res.data.data))
-      .catch(() => toast('Failed to load users', 'error'));
-  }, []);
+    const id = setTimeout(() => {
+      const next = query.trim();
+      if (next !== search) {
+        setSearch(next);
+        setPage(1);
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  // Server-side pagination: fetching once and slicing only ever showed the API's default page (newest 20).
+  useEffect(() => {
+    let stale = false; // ignore responses that arrive after a newer page/search was requested
+    setPendingRoles({}); // unsaved role picks belong to the rows that were on screen
+    api.get('/admin/users', { params: { page, limit: PAGE_SIZE, q: search || undefined } })
+      .then((res) => {
+        if (stale) return;
+        setUsers(res.data.data);
+        setTotal(res.data.meta.total);
+      })
+      .catch(() => {
+        if (!stale) toast('Failed to load users', 'error');
+      });
+    return () => {
+      stale = true;
+    };
+  }, [page, search]);
 
   async function saveRole(userId: string) {
     const role = pendingRoles[userId];
@@ -81,11 +110,21 @@ export default function AdminUsersPage() {
       </div>
     );
 
-  const paginated = users.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
   return (
     <Container className="max-w-5xl py-10">
-      <h1 className="mb-6 font-display text-3xl font-semibold text-ink">{t('users')}</h1>
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <h1 className="font-display text-3xl font-semibold text-ink">
+          {t('users')} <span className="font-mono text-lg tabular text-slate-500">{total}</span>
+        </h1>
+        <Input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('searchUsers')}
+          aria-label={t('searchUsers')}
+          className="w-full sm:w-72"
+        />
+      </div>
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -99,14 +138,14 @@ export default function AdminUsersPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.length === 0 ? (
+              {users.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                     {tc('noData')}
                   </td>
                 </tr>
               ) : (
-                paginated.map((u) => (
+                users.map((u) => (
                   <tr key={u.id} className="border-t border-slate-100">
                     <td className="px-4 py-3 font-medium text-ink">
                       {u.firstName} {u.lastName}
@@ -143,7 +182,7 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
         </div>
-        <Pagination total={users.length} page={page} pageSize={PAGE_SIZE} onChange={setPage} />
+        <Pagination total={total} page={page} pageSize={PAGE_SIZE} onChange={setPage} />
       </Card>
     </Container>
   );

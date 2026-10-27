@@ -161,7 +161,8 @@
     "inNorway": "I Norge",
     "returnDeparture": "Retur till Ukraina",
     "parcelCutoff": "Vi tar emot paket till och med {date}",
-    "completed": "Genomförd"
+    "completed": "Genomförd",
+    "bookSeat": "Boka plats"
   },
   "bookings": {
     "title": "Mina bokningar",
@@ -221,7 +222,18 @@
     "edit": "Redigera",
     "delete": "Ta bort",
     "confirmDeleteRun": "Ta bort den här resan?",
-    "cancelEdit": "Avbryt redigering"
+    "cancelEdit": "Avbryt redigering",
+    "bookingRequests": "Resförfrågningar",
+    "customer": "Kund",
+    "run": "Avgång",
+    "direction": "Riktning",
+    "passengers": "Passagerare",
+    "route": "Rutt",
+    "comment": "Kommentar",
+    "statusNew": "Ny",
+    "statusConfirmed": "Bekräftad",
+    "statusCancelled": "Avbokad",
+    "searchUsers": "Sök på namn, e-post eller telefon"
   },
   "driver": {
     "title": "Förarens panel",
@@ -287,5 +299,33 @@
     "regNumberPlaceholder": "Org.nr: [XXXXXXXX]",
     "addressPlaceholder": "[Kontorsadress]",
     "rights": "Alla rättigheter förbehållna."
+  },
+  "bookRequest": {
+    "eyebrow": "Resförfrågan",
+    "title": "Boka plats",
+    "subtitle": "Skicka en förfrågan — vi ringer dig för att bekräfta resan, påstigningsplats och pris.",
+    "direction": "Riktning",
+    "toNorway": "Ukraina → Norge",
+    "toUkraine": "Norge → Ukraina",
+    "departed": "Redan avgått",
+    "passengers": "Antal passagerare",
+    "fromCity": "Påstigning",
+    "toCity": "Destination",
+    "fromCityPlaceholderNo": "t.ex. Kyiv",
+    "toCityPlaceholderNo": "t.ex. Oslo",
+    "fromCityPlaceholderUa": "t.ex. Oslo",
+    "toCityPlaceholderUa": "t.ex. Kyiv",
+    "phone": "Telefon",
+    "comment": "Kommentar (valfritt)",
+    "commentPlaceholder": "Bagage, djur, exakt adress…",
+    "submit": "Skicka förfrågan",
+    "successTitle": "Förfrågan skickad",
+    "successText": "Vi ringer dig på {phone} för att bekräfta resan.",
+    "backToSchedule": "Till tidtabellen",
+    "notFound": "Avgången finns inte eller är redan genomförd.",
+    "runDeparted": "Den här avgången har redan gått — välj en annan.",
+    "invalidPhone": "Ogiltigt telefonnummer",
+    "required": "Obligatoriskt fält",
+    "tooManyPending": "Du har redan förfrågningar på den här avgången som väntar på bekräftelse — vi ringer dig."
   }
 }

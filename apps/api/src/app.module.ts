@@ -14,6 +14,7 @@ import { AdminModule } from './admin/admin.module';
 import { DriverModule } from './driver/driver.module';
 import { GpsModule } from './gps/gps.module';
 import { ScheduleRunsModule } from './schedule-runs/schedule-runs.module';
+import { BookingRequestsModule } from './booking-requests/booking-requests.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ScheduleRunsModule } from './schedule-runs/schedule-runs.module';
     DriverModule,
     GpsModule,
     ScheduleRunsModule,
+    BookingRequestsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
