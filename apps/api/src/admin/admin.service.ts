@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTripDto } from './dto/create-trip.dto';
 import { PatchRoleDto } from './dto/patch-role.dto';
@@ -8,6 +9,14 @@ import { UpdateScheduleRunDto } from './dto/update-schedule-run.dto';
 const DAY_MS = 86400000;
 function addDays(date: Date, days: number): Date {
   return new Date(date.getTime() + days * DAY_MS);
+}
+
+// @@unique([month, number]) violation → 409 the admin UI can explain, instead of a generic 500.
+function rethrowDuplicateRun(err: unknown): never {
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    throw new ConflictException({ code: 'SCHEDULE_RUN_EXISTS', message: 'A run with this month and number already exists' });
+  }
+  throw err;
 }
 
 @Injectable()
@@ -121,18 +130,20 @@ export class AdminService {
     const destinationEnd = dto.destinationEnd ? new Date(dto.destinationEnd) : addDays(destinationStart, 3);
     const returnDate = dto.returnDate ? new Date(dto.returnDate) : destinationEnd;
 
-    const run = await this.prisma.scheduleRun.create({
-      data: {
-        month: dto.month,
-        number: dto.number,
-        parcelsDate,
-        parcelsCutoff,
-        passengersDate,
-        destinationStart,
-        destinationEnd,
-        returnDate,
-      },
-    });
+    const run = await this.prisma.scheduleRun
+      .create({
+        data: {
+          month: dto.month,
+          number: dto.number,
+          parcelsDate,
+          parcelsCutoff,
+          passengersDate,
+          destinationStart,
+          destinationEnd,
+          returnDate,
+        },
+      })
+      .catch(rethrowDuplicateRun);
     return { data: run, error: null };
   }
 
@@ -148,7 +159,7 @@ export class AdminService {
       if (dto[field] !== undefined) data[field] = new Date(dto[field] as string);
     }
 
-    const updated = await this.prisma.scheduleRun.update({ where: { id: runId }, data });
+    const updated = await this.prisma.scheduleRun.update({ where: { id: runId }, data }).catch(rethrowDuplicateRun);
     return { data: updated, error: null };
   }
 

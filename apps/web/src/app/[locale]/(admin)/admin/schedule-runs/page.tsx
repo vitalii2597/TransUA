@@ -72,7 +72,8 @@ export default function AdminScheduleRunsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get('/admin/schedule-runs')
+    // Paginated client-side, so fetch all runs (a couple per month) rather than the API's default page of 20.
+    api.get('/admin/schedule-runs', { params: { limit: 1000 } })
       .then((res) => setRuns(res.data.data))
       .catch(() => toast('Failed to load schedule runs', 'error'));
   }, []);
@@ -90,8 +91,8 @@ export default function AdminScheduleRunsPage() {
       setForm({ month: '', number: '', parcelsDate: '' });
       setShowForm(false);
       toast('Run created', 'success');
-    } catch {
-      toast('Failed to create run', 'error');
+    } catch (err: any) {
+      toast(err.response?.data?.error?.code === 'SCHEDULE_RUN_EXISTS' ? 'A run with this month and number already exists' : 'Failed to create run', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -120,8 +121,8 @@ export default function AdminScheduleRunsPage() {
       setEditingId(null);
       setEditForm(null);
       toast('Run updated', 'success');
-    } catch {
-      toast('Failed to update run', 'error');
+    } catch (err: any) {
+      toast(err.response?.data?.error?.code === 'SCHEDULE_RUN_EXISTS' ? 'A run with this month and number already exists' : 'Failed to update run', 'error');
     } finally {
       setSavingEdit(false);
     }

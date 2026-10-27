@@ -70,7 +70,8 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 ## Architecture Decisions
 - JWT access token (15m) + refresh token (7d) stored in cookies via `js-cookie`
 - Refresh tokens persisted in DB (`RefreshToken` table) as a SHA-256 hash, never the raw token; deleted on logout
-- Password reset: `forgot-password` emails a random 1h single-use token (only its SHA-256 stored in `PasswordResetToken`; issuing a new one voids older unused ones). A successful reset deletes all the user's refresh tokens (logs out every session). Email goes through `MailService` (`apps/api/src/mail/`) via SendGrid's HTTP API when `SENDGRID_API_KEY` is set; without a key, dev logs the email (incl. reset link) to the API console, production logs an error only
+- Password reset: `forgot-password` emails a random 1h single-use token (only its SHA-256 stored in `PasswordResetToken`; issuing a new one voids older unused ones). A successful reset deletes all the user's refresh tokens (logs out every session). Email goes through `MailService` (`apps/api/src/mail/`) via SendGrid's HTTP API when `SENDGRID_API_KEY` is set; without a key it logs an error only, unless `MAIL_LOG_TO_CONSOLE="true"` (local-dev opt-in, never on a deployed server) prints the email incl. reset link to the API console. The forgot-password lookup/token/email all run after the response is sent, so timing doesn't reveal whether an account exists
+- API sets Express `trust proxy` to 1 hop so the global throttler sees real client IPs behind Railway's proxy
 - `DELETE /users/me` fulfils GDPR erasure for real: wraps the full delete in a transaction that unlinks/removes owned vehicles, bookings (cascades passengers), payments, and parcels (cascades status logs) before deleting the user row — a bare `user.delete()` would FK-violate for any account with activity
 - All API responses: `{ data, error }` envelope; meta for pagination: `{ data, meta, error }`
 - Global `HttpExceptionFilter` → `{ error: { code, message } }`
@@ -442,6 +443,7 @@ TWILIO_PHONE_NUMBER=""
 SENDGRID_API_KEY=""
 SENDGRID_FROM_EMAIL="noreply@transua.no"
 SENDGRID_FROM_NAME="TransUA"
+MAIL_LOG_TO_CONSOLE="true"   # local dev only: print emails (reset links) to console when no SendGrid key
 
 # Deferred
 STRIPE_SECRET_KEY=""

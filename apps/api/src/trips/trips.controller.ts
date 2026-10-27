@@ -13,7 +13,8 @@ export class TripsController {
     @Query('seats') seats: string,
   ) {
     // No date → list all upcoming departures (timetable view) instead of just today.
-    const seatsNum = seats !== undefined && seats !== '' ? Number(seats) : 1;
+    const parsed = Number(seats);
+    const seatsNum = Number.isInteger(parsed) && parsed >= 1 ? parsed : 1;
     return this.tripsService.search(from || '', to || '', date || '', seatsNum);
   }
 

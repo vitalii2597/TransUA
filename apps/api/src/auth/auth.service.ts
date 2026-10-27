@@ -10,6 +10,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-reset.dto';
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const LOCALES = ['uk', 'no', 'sv', 'pl'];
 
 // Refresh tokens are high-entropy signed JWTs, not user-chosen secrets, so a fast
 // hash is the right tool here (unlike passwords, which need bcrypt's deliberate
@@ -86,26 +87,30 @@ export class AuthService {
   }
 
   // Always answers the same way whether or not the email exists, so this endpoint
-  // can't be used to discover which addresses have accounts. The email is sent
-  // without awaiting for the same reason — response time shouldn't leak it either.
+  // can't be used to discover which addresses have accounts. All the work (lookup,
+  // token write, email) runs after responding for the same reason — otherwise the
+  // extra DB round-trips for real accounts would show up in response time.
   async forgotPassword(dto: ForgotPasswordDto) {
-    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (user) {
-      const token = randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS);
-      await this.prisma.$transaction([
-        this.prisma.passwordResetToken.deleteMany({ where: { userId: user.id, usedAt: null } }),
-        this.prisma.passwordResetToken.create({ data: { userId: user.id, tokenHash: hashToken(token), expiresAt } }),
-      ]);
-
-      const lang = dto.locale || user.preferredLang;
-      const frontend = this.config.get('FRONTEND_URL') || 'http://localhost:3000';
-      const link = `${frontend}/${lang}/reset-password?token=${token}`;
-      this.mail.sendPasswordReset(user.email, link, lang).catch((err) =>
-        this.logger.error(`Password reset email failed: ${err}`),
-      );
-    }
+    this.issueResetLink(dto).catch((err) => this.logger.error(`Password reset failed: ${err}`));
     return { data: { sent: true }, error: null };
+  }
+
+  private async issueResetLink(dto: ForgotPasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (!user) return;
+
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+    await this.prisma.$transaction([
+      this.prisma.passwordResetToken.deleteMany({ where: { userId: user.id, usedAt: null } }),
+      this.prisma.passwordResetToken.create({ data: { userId: user.id, tokenHash: hashToken(token), expiresAt } }),
+    ]);
+
+    // preferredLang predates locale validation, so guard against values the web app has no route for.
+    const lang = dto.locale || (LOCALES.includes(user.preferredLang) ? user.preferredLang : 'uk');
+    const frontend = this.config.get('FRONTEND_URL') || 'http://localhost:3000';
+    const link = `${frontend}/${lang}/reset-password?token=${token}`;
+    await this.mail.sendPasswordReset(user.email, link, lang);
   }
 
   async resetPassword(dto: ResetPasswordDto) {

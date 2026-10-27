@@ -26,9 +26,9 @@ const RESET_COPY: Record<Lang, { subject: string; body: (link: string) => string
   },
 };
 
-// Sends through SendGrid's HTTP API when SENDGRID_API_KEY is set. Without a key
-// (local dev), the message is logged to the console instead so the flow is still
-// testable — but never in production, where a logged reset link would be a leak.
+// Sends through SendGrid's HTTP API when SENDGRID_API_KEY is set. Without a key, the
+// message is printed to the console only if MAIL_LOG_TO_CONSOLE=true (local dev opt-in),
+// so a deploy that forgets an env var never ends up writing live reset links to its logs.
 @Injectable()
 export class MailService {
   private readonly logger = new Logger(MailService.name);
@@ -43,10 +43,10 @@ export class MailService {
   private async send(to: string, subject: string, text: string) {
     const apiKey = this.config.get<string>('SENDGRID_API_KEY');
     if (!apiKey) {
-      if (this.config.get('NODE_ENV') === 'production') {
-        this.logger.error(`SENDGRID_API_KEY not set — email "${subject}" was not sent`);
-      } else {
+      if (this.config.get('MAIL_LOG_TO_CONSOLE') === 'true') {
         this.logger.log(`[dev mail] to=${to} subject="${subject}"\n${text}`);
+      } else {
+        this.logger.error(`SENDGRID_API_KEY not set — email "${subject}" was not sent`);
       }
       return;
     }
