@@ -161,7 +161,8 @@
     "inNorway": "I Norge",
     "returnDeparture": "Retur til Ukraina",
     "parcelCutoff": "Vi tar imot pakker til og med {date}",
-    "completed": "Fullført"
+    "completed": "Fullført",
+    "bookSeat": "Bestill plass"
   },
   "bookings": {
     "title": "Mine bestillinger",
@@ -221,7 +222,18 @@
     "edit": "Rediger",
     "delete": "Slett",
     "confirmDeleteRun": "Slette denne turen?",
-    "cancelEdit": "Avbryt redigering"
+    "cancelEdit": "Avbryt redigering",
+    "bookingRequests": "Reiseforespørsler",
+    "customer": "Kunde",
+    "run": "Avgang",
+    "direction": "Retning",
+    "passengers": "Passasjerer",
+    "route": "Rute",
+    "comment": "Kommentar",
+    "statusNew": "Ny",
+    "statusConfirmed": "Bekreftet",
+    "statusCancelled": "Kansellert",
+    "searchUsers": "Søk etter navn, e-post eller telefon"
   },
   "driver": {
     "title": "Sjåførpanel",
@@ -287,5 +299,33 @@
     "regNumberPlaceholder": "Org.nr: [XXXXXXXX]",
     "addressPlaceholder": "[Kontoradresse]",
     "rights": "Alle rettigheter forbeholdt."
+  },
+  "bookRequest": {
+    "eyebrow": "Reiseforespørsel",
+    "title": "Bestill plass",
+    "subtitle": "Send en forespørsel — vi ringer deg for å bekrefte reisen, påstigningssted og pris.",
+    "direction": "Retning",
+    "toNorway": "Ukraina → Norge",
+    "toUkraine": "Norge → Ukraina",
+    "departed": "Allerede reist",
+    "passengers": "Antall passasjerer",
+    "fromCity": "Påstigning",
+    "toCity": "Destinasjon",
+    "fromCityPlaceholderNo": "f.eks. Kyiv",
+    "toCityPlaceholderNo": "f.eks. Oslo",
+    "fromCityPlaceholderUa": "f.eks. Oslo",
+    "toCityPlaceholderUa": "f.eks. Kyiv",
+    "phone": "Telefon",
+    "comment": "Kommentar (valgfritt)",
+    "commentPlaceholder": "Bagasje, dyr, nøyaktig adresse…",
+    "submit": "Send forespørsel",
+    "successTitle": "Forespørsel sendt",
+    "successText": "Vi ringer deg på {phone} for å bekrefte reisen.",
+    "backToSchedule": "Til ruteplanen",
+    "notFound": "Avgangen finnes ikke eller er allerede gjennomført.",
+    "runDeparted": "Denne avgangen har allerede gått — velg en annen.",
+    "invalidPhone": "Ugyldig telefonnummer",
+    "required": "Påkrevd felt",
+    "tooManyPending": "Du har allerede forespørsler på denne avgangen som venter på bekreftelse — vi ringer deg."
   }
 }

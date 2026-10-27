@@ -97,6 +97,7 @@ Project agents live in `.claude/agents/`: `developer`, `code-reviewer`, `tester`
 - Booking pages redirect to login immediately on load if not authenticated
 - Design system: see **Design System** section below (redesigned to "Nordic Blue" — minimal Scandinavian SaaS)
 - `/[locale]/trips` reflects how the route actually operates: a recurring Ukraine ↔ Norway courier+passenger cycle published a couple of months ahead (no per-seat/per-hour booking exists for it). The schedule is DB-backed (`ScheduleRun` model, see below) and managed at `/[locale]/admin/schedule-runs` — the public page fetches `GET /schedule-runs` on load. The `Trip`/booking/seat-picker model still exists and is unchanged (`GET /trips`, `/trips/:id`, seat picker) but is no longer surfaced through a public search page.
+- **Booking a run = a request, not a booking.** The corridor has no seat map or fixed price, so each run on `/trips` with a passenger leg still ahead shows "Book a seat" → `/[locale]/book/[runId]` (auth-gated) → `POST /booking-requests` creates a `BookingRequest` (status NEW). Staff call the customer back and set CONFIRMED/CANCELLED at `/[locale]/admin/booking-requests`. A run with open (NEW/CONFIRMED) requests can't be deleted (409 `SCHEDULE_RUN_HAS_REQUESTS`); cancelled requests are deleted with it.
 - **ScheduleRun dates auto-derive from one date.** The corridor's 4 phases follow a fixed offset from the parcels departure date: cutoff = `parcelsDate - 1d`, passengers = `parcelsDate + 2d`, destination start = `passengers + 2d`, destination end = `start + 3d`, return = destination end. `POST /admin/schedule-runs` only requires `month`, `number`, `parcelsDate` — the rest are computed server-side (`AdminService.createScheduleRun`) unless explicitly overridden in the same request. `PATCH /admin/schedule-runs/:id` sets fields as given, no re-derivation (for correcting a typo'd date without recomputing the others).
 
 ---
@@ -157,6 +158,12 @@ model ScheduleRun {
   id, month, number
   parcelsDate, parcelsCutoff, passengersDate, destinationStart, destinationEnd, returnDate
   @@unique([month, number])
+}
+enum TravelDirection { TO_NORWAY, TO_UKRAINE }   // = run.passengersDate / run.returnDate
+enum BookingRequestStatus { NEW, CONFIRMED, CANCELLED }
+model BookingRequest {
+  id, scheduleRunId (onDelete: Restrict), userId (onDelete: Cascade)
+  direction, passengers (1–8), fromCity, toCity, phone, comment?, status, createdAt
 }
 ```
 
@@ -229,6 +236,13 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 | PATCH | `/admin/schedule-runs/:id` | admin | ✅ built (sets given fields as-is, no re-derivation) |
 | DELETE | `/admin/schedule-runs/:id` | admin | ✅ built |
 
+### Booking Requests `/api/booking-requests`, `/api/admin/booking-requests`
+| Method | Endpoint | Auth | Status |
+|---|---|---|---|
+| POST | `/booking-requests` | JWT | ✅ built (`scheduleRunId`, `direction`, `passengers`, `fromCity`, `toCity`, `phone`, `comment?`; `RUN_DEPARTED` if that leg has left; anti-spam: 5 req/min throttle + max 3 NEW requests per user per run → 409 `TOO_MANY_PENDING_REQUESTS`) |
+| GET | `/admin/booking-requests` | admin | ✅ built (paginated, newest first, includes run + user; `limit` clamped to 1–100) |
+| PATCH | `/admin/booking-requests/:id/status` | admin | ✅ built (`NEW`/`CONFIRMED`/`CANCELLED`) |
+
 ### Bookings `/api/bookings`
 | Method | Endpoint | Auth | Status |
 |---|---|---|---|
@@ -245,7 +259,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 | GET | `/parcels` | JWT | 🔲 Phase 3 |
 | GET | `/parcels/:id` | JWT | 🔲 Phase 3 |
 | GET | `/parcels/track/:code` | public | 🔲 Phase 3 |
-| PATCH | `/parcels/:id/status` | driver | 🔲 Phase 3 |
+| PATCH | `/parcels/:id/status` | driver, admin | ✅ built (also appends a `ParcelStatusLog`; used by the admin parcels page) |
 
 ### Payments `/api/payments`
 | Method | Endpoint | Auth | Status |
@@ -267,7 +281,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 |---|---|---|---|
 | GET | `/admin/stats` | admin | 🔲 Phase 4 |
 | PATCH | `/admin/users/:id/role` | admin | 🔲 Phase 4 |
-| GET | `/admin/users` | admin | 🔲 Phase 4 |
+| GET | `/admin/users` | admin | ✅ built (paginated `page`/`limit`, clamped 1–10000 / 1–100; `q` = space-separated words, each must match email/first/last name (case-insensitive) or phone) |
 
 ### WebSocket — GPS (Phase 4)
 | Event | Direction | Payload |
@@ -286,7 +300,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]/login` — login form
 - `/[locale]/register` — register form
 - `/[locale]/forgot-password` — request reset link (linked from login); `/[locale]/reset-password?token=` — set new password
-- `/[locale]/trips` — published schedule (2026-07 redesign, DB-backed since 2026-07-13): timetable grouped by month, fetched from `GET /schedule-runs`. Each "run" (Ukraine ↔ Norway courier + passenger cycle) is a vertical status timeline — parcel departure (+ drop-off cutoff) → passenger departure → days at destination → return — with done/current/upcoming states. No search form, no seats/price/booking on this page (see Architecture Decisions).
+- `/[locale]/trips` — published schedule (2026-07 redesign, DB-backed since 2026-07-13): timetable grouped by month, fetched from `GET /schedule-runs`. Each "run" (Ukraine ↔ Norway courier + passenger cycle) is a vertical status timeline — parcel departure (+ drop-off cutoff) → passenger departure → days at destination → return — with done/current/upcoming states. No search form, seats or prices; runs with a passenger leg still ahead get a "Book a seat" button → `/book/[runId]` request form (see Architecture Decisions).
 - `/[locale]/trips/[id]` — 4-step booking: Seat → Passengers → Payment → Confirm (auth redirect on load)
 - `/[locale]/(dashboard)/dashboard` — profile with i18n labels + quick links to bookings/trips
 - `/[locale]/(dashboard)/bookings` — my bookings + cancel + PDF download + empty CTA
@@ -295,10 +309,12 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]/(driver)/driver` — driver's trip list + status management
 - `/[locale]/(driver)/driver/trips/[id]` — passengers list + GPS broadcast button
 - `/[locale]/(admin)/admin` — stats dashboard (users/trips/bookings/parcels/revenue)
-- `/[locale]/(admin)/admin/users` — user list + role management
+- `/[locale]/(admin)/admin/users` — user list (server-paginated, debounced search, total count) + role management
 - `/[locale]/(admin)/admin/trips` — trip list + create + status management
-- `/[locale]/(admin)/admin/parcels` — parcel overview
+- `/[locale]/(admin)/admin/parcels` — parcel overview + inline status select (any status, incl. backwards, as an admin override)
 - `/[locale]/(admin)/admin/schedule-runs` — manage the published `/trips` schedule: list + create (month/number/parcelsDate only, other 4 dates auto-derived) + inline edit + delete
+- `/[locale]/(admin)/admin/booking-requests` — passenger requests from `/book/[runId]`: server-paginated table with inline status select
+- `/[locale]/book/[runId]` — booking request form for a schedule run (direction, passengers, cities, phone, comment); linked from each run on `/trips`
 - `/[locale]/privacy` — privacy policy (GDPR)
 - `/[locale]/terms` — terms of service
 
@@ -363,7 +379,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `DELETE /users/me` — GDPR account deletion
 - `helmet()` security headers on all routes
 - `@nestjs/throttler` — bound globally via `APP_GUARD` at 200 req/min, stricter 5 req/min on `/auth/*`. `@SkipThrottle()` exempts authenticated role-gated controllers where bursty legitimate use is expected (`admin`, `driver`, `vehicles` — GPS pings, `users`); public/write endpoints flagged in a 2026-10-25 audit (`trips`, `routes`, `schedule-runs`, `bookings`, `parcels`) are not exempted
-- E2E tests (Playwright, 68 tests in `e2e/`): auth, booking flow, i18n, parcels, trips, UI, password reset. Run with `pnpm test:e2e` (reuses running dev servers). Needs `THROTTLE_DISABLED="true"` in `apps/api/.env`, otherwise the 5/min auth limit fails registration/login tests. `e2e/helpers/db.ts` writes reset tokens straight to the DB (the suite can't read emails). Only `@playwright/test` is a dependency — adding the bare `playwright` package at a different version breaks the runner ("did not expect test.describe() to be called here")
+- E2E tests (Playwright, `e2e/`): auth, booking flow, booking requests, admin parcels, i18n, parcels, trips, UI, password reset. Test accounts are always `e2e_…@test.com`; `e2e/global-teardown.ts` deletes them (GDPR-style cascade via `deleteE2eUsers`) after every run, so keep new test emails on that pattern. `e2e/helpers/db.ts` throws unless `DATABASE_URL`'s host is local (`localhost`/`127.0.0.1`/`::1`/`postgres`), so the suite can never promote or delete users on a remote DB. Run with `pnpm test:e2e` (reuses running dev servers). Needs `THROTTLE_DISABLED="true"` in `apps/api/.env`, otherwise the 5/min auth limit fails registration/login tests. `e2e/helpers/db.ts` writes reset tokens straight to the DB (the suite can't read emails). Only `@playwright/test` is a dependency — adding the bare `playwright` package at a different version breaks the runner ("did not expect test.describe() to be called here")
 - SEO: `sitemap.ts` (all locale × static paths), `robots.ts`, JSON-LD (TravelAgency) in layout
 - Privacy policy page `/[locale]/privacy`
 - Terms of service page `/[locale]/terms`

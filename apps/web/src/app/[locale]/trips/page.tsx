@@ -9,6 +9,8 @@ import { Spinner } from '@/components/Spinner';
 import { Container } from '@/components/ui/Container';
 import { Card } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Ticket } from 'lucide-react';
 import {
   type Run,
   type ScheduleRunRow,
@@ -75,6 +77,10 @@ export default function TripsPage() {
               <div className="space-y-4">
                 {group.runs.map((run) => {
                   const runDone = isRunDone(run, today);
+                  // Bookable while either passenger leg (outbound or return) hasn't left yet.
+                  const bookable = run.phases.some(
+                    (p) => (p.type === 'passengers' || p.type === 'return') && phaseStatus(p, today) !== 'done',
+                  );
 
                   return (
                     <Card key={run.id} className={`p-6 ${runDone ? 'opacity-60' : ''}`}>
@@ -143,6 +149,15 @@ export default function TripsPage() {
                           );
                         })}
                       </ol>
+
+                      {bookable && (
+                        <div className="mt-6 border-t border-slate-100 pt-5">
+                          <Button href={`/${locale}/book/${run.id}`} className="w-full sm:w-auto">
+                            <Ticket className="h-4 w-4" aria-hidden="true" />
+                            {t('bookSeat')}
+                          </Button>
+                        </div>
+                      )}
                     </Card>
                   );
                 })}

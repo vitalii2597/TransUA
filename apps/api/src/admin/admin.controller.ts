@@ -5,6 +5,7 @@ import { CreateTripDto } from './dto/create-trip.dto';
 import { PatchRoleDto } from './dto/patch-role.dto';
 import { CreateScheduleRunDto } from './dto/create-schedule-run.dto';
 import { UpdateScheduleRunDto } from './dto/update-schedule-run.dto';
+import { PatchBookingRequestStatusDto } from './dto/patch-booking-request-status.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -22,8 +23,9 @@ export class AdminController {
   }
 
   @Get('users')
-  getUsers(@Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.adminService.getUsers(Number(page) || 1, Number(limit) || 20);
+  getUsers(@Query('page') page?: string, @Query('limit') limit?: string, @Query('q') q?: string) {
+    // A repeated ?q=a&q=b arrives as an array; only accept a single string.
+    return this.adminService.getUsers(Number(page) || 1, Number(limit) || 20, typeof q === 'string' ? q.slice(0, 100) : undefined);
   }
 
   @Patch('users/:id/role')
@@ -69,5 +71,15 @@ export class AdminController {
   @Delete('schedule-runs/:id')
   deleteScheduleRun(@Param('id') id: string) {
     return this.adminService.deleteScheduleRun(id);
+  }
+
+  @Get('booking-requests')
+  getBookingRequests(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.adminService.getBookingRequests(Number(page) || 1, Number(limit) || 20);
+  }
+
+  @Patch('booking-requests/:id/status')
+  patchBookingRequestStatus(@Param('id') id: string, @Body() dto: PatchBookingRequestStatusDto) {
+    return this.adminService.patchBookingRequestStatus(id, dto.status);
   }
 }

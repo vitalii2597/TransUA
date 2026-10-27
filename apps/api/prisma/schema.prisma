@@ -52,6 +52,7 @@ model User {
 
   refreshTokens RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  bookingRequests BookingRequest[]
   bookings      Booking[]
   vehicles      Vehicle[]
   driverTrips   Trip[]        @relation("DriverTrips")
@@ -224,6 +225,40 @@ model ScheduleRun {
   destinationEnd   DateTime
   returnDate       DateTime
   createdAt        DateTime @default(now())
+  bookingRequests  BookingRequest[]
 
   @@unique([month, number])
+}
+
+enum TravelDirection {
+  TO_NORWAY // Ukraine → Norway, on the run's passengersDate
+  TO_UKRAINE // Norway → Ukraine, on the run's returnDate
+}
+
+enum BookingRequestStatus {
+  NEW
+  CONFIRMED
+  CANCELLED
+}
+
+// A passenger's request for a seat on a schedule run. The corridor has no seat map or
+// fixed price, so this isn't a booking — staff call the customer back to confirm it.
+model BookingRequest {
+  id            String               @id @default(uuid())
+  scheduleRunId String
+  // Restrict: deleting a run must not silently drop customers' requests.
+  scheduleRun   ScheduleRun          @relation(fields: [scheduleRunId], references: [id], onDelete: Restrict)
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  direction     TravelDirection
+  passengers    Int
+  fromCity      String
+  toCity        String
+  phone         String
+  comment       String?
+  status        BookingRequestStatus @default(NEW)
+  createdAt     DateTime             @default(now())
+
+  @@index([scheduleRunId])
+  @@index([userId])
 }

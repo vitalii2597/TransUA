@@ -70,6 +70,7 @@ export default function AdminPage() {
           { label: t('trips'), path: 'trips' },
           { label: t('parcels'), path: 'parcels' },
           { label: t('scheduleRuns'), path: 'schedule-runs' },
+          { label: t('bookingRequests'), path: 'booking-requests' },
         ].map((item) => (
           <Button key={item.path} href={`/${locale}/admin/${item.path}`} size="lg">
             {item.label}

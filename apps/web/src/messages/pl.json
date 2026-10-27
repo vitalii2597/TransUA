@@ -161,7 +161,8 @@
     "inNorway": "W Norwegii",
     "returnDeparture": "Powrót na Ukrainę",
     "parcelCutoff": "Przyjmujemy paczki do {date} włącznie",
-    "completed": "Zakończony"
+    "completed": "Zakończony",
+    "bookSeat": "Zarezerwuj miejsce"
   },
   "bookings": {
     "title": "Moje rezerwacje",
@@ -221,7 +222,18 @@
     "edit": "Edytuj",
     "delete": "Usuń",
     "confirmDeleteRun": "Usunąć ten kurs?",
-    "cancelEdit": "Anuluj edycję"
+    "cancelEdit": "Anuluj edycję",
+    "bookingRequests": "Zgłoszenia podróży",
+    "customer": "Klient",
+    "run": "Kurs",
+    "direction": "Kierunek",
+    "passengers": "Pasażerowie",
+    "route": "Trasa",
+    "comment": "Komentarz",
+    "statusNew": "Nowe",
+    "statusConfirmed": "Potwierdzone",
+    "statusCancelled": "Anulowane",
+    "searchUsers": "Szukaj po imieniu, e-mailu lub telefonie"
   },
   "driver": {
     "title": "Panel kierowcy",
@@ -287,5 +299,33 @@
     "regNumberPlaceholder": "NIP/Nr rej.: [XXXXXXXX]",
     "addressPlaceholder": "[Adres biura]",
     "rights": "Wszelkie prawa zastrzeżone."
+  },
+  "bookRequest": {
+    "eyebrow": "Zgłoszenie podróży",
+    "title": "Zarezerwuj miejsce",
+    "subtitle": "Wyślij zgłoszenie — zadzwonimy, aby potwierdzić podróż, miejsce odbioru i cenę.",
+    "direction": "Kierunek",
+    "toNorway": "Ukraina → Norwegia",
+    "toUkraine": "Norwegia → Ukraina",
+    "departed": "Już odjechał",
+    "passengers": "Liczba pasażerów",
+    "fromCity": "Miejsce odbioru",
+    "toCity": "Miejsce docelowe",
+    "fromCityPlaceholderNo": "np. Kijów",
+    "toCityPlaceholderNo": "np. Oslo",
+    "fromCityPlaceholderUa": "np. Oslo",
+    "toCityPlaceholderUa": "np. Kijów",
+    "phone": "Telefon kontaktowy",
+    "comment": "Komentarz (opcjonalnie)",
+    "commentPlaceholder": "Bagaż, zwierzęta, dokładny adres…",
+    "submit": "Wyślij zgłoszenie",
+    "successTitle": "Zgłoszenie wysłane",
+    "successText": "Zadzwonimy pod numer {phone}, aby potwierdzić podróż.",
+    "backToSchedule": "Do rozkładu",
+    "notFound": "Kurs nie istnieje lub już się zakończył.",
+    "runDeparted": "Ten wyjazd już się odbył — wybierz inny kurs.",
+    "invalidPhone": "Nieprawidłowy numer telefonu",
+    "required": "Pole wymagane",
+    "tooManyPending": "Masz już zgłoszenia na ten kurs oczekujące na potwierdzenie — zadzwonimy do Ciebie."
   }
 }

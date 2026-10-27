@@ -161,7 +161,8 @@
     "inNorway": "У Норвегії",
     "returnDeparture": "Виїзд в Україну",
     "parcelCutoff": "Прийом посилок до {date} включно",
-    "completed": "Завершено"
+    "completed": "Завершено",
+    "bookSeat": "Забронювати місце"
   },
   "bookings": {
     "title": "Мої бронювання",
@@ -221,7 +222,18 @@
     "edit": "Редагувати",
     "delete": "Видалити",
     "confirmDeleteRun": "Видалити цей рейс?",
-    "cancelEdit": "Скасувати редагування"
+    "cancelEdit": "Скасувати редагування",
+    "bookingRequests": "Заявки на поїздки",
+    "customer": "Клієнт",
+    "run": "Рейс",
+    "direction": "Напрямок",
+    "passengers": "Пасажири",
+    "route": "Маршрут",
+    "comment": "Коментар",
+    "statusNew": "Нова",
+    "statusConfirmed": "Підтверджена",
+    "statusCancelled": "Скасована",
+    "searchUsers": "Пошук за іменем, email або телефоном"
   },
   "driver": {
     "title": "Кабінет водія",
@@ -287,5 +299,33 @@
     "regNumberPlaceholder": "Рег. номер: [XXXXXXXX]",
     "addressPlaceholder": "[Адреса офісу]",
     "rights": "Усі права захищені."
+  },
+  "bookRequest": {
+    "eyebrow": "Заявка на поїздку",
+    "title": "Забронювати місце",
+    "subtitle": "Залиште заявку — ми зателефонуємо, щоб підтвердити поїздку, місце посадки та ціну.",
+    "direction": "Напрямок",
+    "toNorway": "Україна → Норвегія",
+    "toUkraine": "Норвегія → Україна",
+    "departed": "Вже вирушив",
+    "passengers": "Кількість пасажирів",
+    "fromCity": "Місто посадки",
+    "toCity": "Місто прибуття",
+    "fromCityPlaceholderNo": "напр. Київ",
+    "toCityPlaceholderNo": "напр. Осло",
+    "fromCityPlaceholderUa": "напр. Осло",
+    "toCityPlaceholderUa": "напр. Київ",
+    "phone": "Телефон для зв’язку",
+    "comment": "Коментар (необов’язково)",
+    "commentPlaceholder": "Багаж, тварини, точна адреса…",
+    "submit": "Надіслати заявку",
+    "successTitle": "Заявку надіслано",
+    "successText": "Ми зателефонуємо на {phone}, щоб підтвердити поїздку.",
+    "backToSchedule": "До розкладу",
+    "notFound": "Рейс не знайдено або він уже завершився.",
+    "runDeparted": "Цей виїзд уже відбувся — оберіть інший рейс.",
+    "invalidPhone": "Невірний номер телефону",
+    "required": "Обов’язкове поле",
+    "tooManyPending": "У вас уже є заявки на цей рейс, які очікують підтвердження — ми зателефонуємо вам."
   }
 }

@@ -135,8 +135,8 @@ export default function AdminScheduleRunsPage() {
       await api.delete(`/admin/schedule-runs/${id}`);
       setRuns((prev) => (prev ? prev.filter((r) => r.id !== id) : prev));
       toast('Run deleted', 'success');
-    } catch {
-      toast('Failed to delete run', 'error');
+    } catch (err: any) {
+      toast(err.response?.data?.error?.code === 'SCHEDULE_RUN_HAS_REQUESTS' ? 'This run has open booking requests — cancel them first' : 'Failed to delete run', 'error');
     } finally {
       setDeletingId(null);
     }
