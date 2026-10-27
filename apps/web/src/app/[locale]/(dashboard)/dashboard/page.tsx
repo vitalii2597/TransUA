@@ -90,7 +90,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="font-semibold text-ink transition group-hover:text-brand-700">{tn('bookings')}</p>
-              <p className="text-sm text-slate-400">{tc('viewTickets')}</p>
+              <p className="text-sm text-slate-500">{tc('viewTickets')}</p>
             </div>
           </button>
         </Card>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="font-semibold text-ink transition group-hover:text-emerald-700">{tn('trips')}</p>
-              <p className="text-sm text-slate-400">{tc('findTrip')}</p>
+              <p className="text-sm text-slate-500">{tc('findTrip')}</p>
             </div>
           </button>
         </Card>

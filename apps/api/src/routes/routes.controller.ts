@@ -1,9 +1,7 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
 import { RoutesService } from './routes.service';
 import { CreateRouteDto } from './dto/create-route.dto';
 
-@SkipThrottle()
 @Controller('routes')
 export class RoutesController {
   constructor(private routesService: RoutesService) {}

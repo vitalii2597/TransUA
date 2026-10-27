@@ -82,12 +82,21 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPwd((v) => !v)}
                   aria-label={showPwd ? t('hidePassword') : t('showPassword')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                 >
                   {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </Field>
+
+            <div className="-mt-1 text-right">
+              <Link
+                href={`/${locale}/forgot-password`}
+                className="text-sm font-medium text-brand-600 hover:text-brand-700"
+              >
+                {t('forgotPassword')}
+              </Link>
+            </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
               {isSubmitting ? tc('loading') : t('login')}

@@ -308,8 +308,8 @@ export default function ParcelsPage() {
                         {p.recipientName} · <span className="font-mono tabular">{p.weightKg} kg</span> ·{' '}
                         <span className="font-mono tabular">{p.priceEur} €</span>
                       </p>
-                      <p className="mt-0.5 truncate text-xs text-slate-400">{p.deliveryAddress}</p>
-                      <p className="font-mono text-xs tabular text-slate-400">{fmt(p.createdAt)}</p>
+                      <p className="mt-0.5 truncate text-xs text-slate-500">{p.deliveryAddress}</p>
+                      <p className="font-mono text-xs tabular text-slate-500">{fmt(p.createdAt)}</p>
                     </div>
                     <Badge tone={STATUS_TONE[p.status]}>{t(p.status)}</Badge>
                   </div>

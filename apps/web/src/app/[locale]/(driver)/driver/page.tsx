@@ -108,7 +108,7 @@ export default function DriverDashboard() {
                     {fmt(trip.departureAt)} — {fmt(trip.arrivalAt)}
                   </p>
                   {trip.vehicle && (
-                    <p className="mt-0.5 text-xs text-slate-400">
+                    <p className="mt-0.5 text-xs text-slate-500">
                       {trip.vehicle.model} · <span className="font-mono">{trip.vehicle.plateNumber}</span>
                     </p>
                   )}

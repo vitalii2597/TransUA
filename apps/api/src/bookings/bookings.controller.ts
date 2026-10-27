@@ -1,12 +1,10 @@
 import { Controller, Post, Get, Delete, Param, Body, UseGuards, Res } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { BookingsService } from './bookings.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
-@SkipThrottle()
 @UseGuards(JwtAuthGuard)
 @Controller('bookings')
 export class BookingsController {

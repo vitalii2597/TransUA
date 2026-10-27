@@ -50,7 +50,7 @@ test.describe('Cookie banner', () => {
 test.describe('Navigation', () => {
   test('home page loads with TransUA branding', async ({ page }) => {
     await page.goto(BASE);
-    await expect(page.getByRole('link', { name: 'TransUA' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'TransUA' })).toBeVisible();
   });
 
   test('privacy policy page loads', async ({ page }) => {
@@ -65,8 +65,8 @@ test.describe('Navigation', () => {
 
   test('navbar links are visible', async ({ page }) => {
     await page.goto(BASE);
-    await expect(page.getByRole('link', { name: 'TransUA' })).toBeVisible();
-    await expect(page.getByRole('link', { name: /trips|поїздки/i }).first()).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'TransUA' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'Розклад' })).toBeVisible();
   });
 });
 

@@ -146,7 +146,7 @@ export default function TripDetailPage() {
         <div className="mx-auto mt-4 max-w-xs">
           <RouteLine from={trip.fromCity} to={trip.toCity} middle={`#${selectedSeat}`} />
         </div>
-        <p className="mt-4 text-sm text-slate-400">
+        <p className="mt-4 text-sm text-slate-500">
           Ref: <strong className="font-mono tabular text-ink">{bookingRef}</strong>
         </p>
         <div className="mt-8 flex justify-center gap-3">
@@ -190,7 +190,7 @@ export default function TripDetailPage() {
               {i < step ? <Check className="h-4 w-4" /> : i + 1}
             </div>
             <span
-              className={`ml-2 hidden text-xs sm:block ${i === step ? 'font-semibold text-brand-700' : 'text-slate-400'}`}
+              className={`ml-2 hidden text-xs sm:block ${i === step ? 'font-semibold text-brand-700' : 'text-slate-500'}`}
             >
               {t(s)}
             </span>
@@ -229,7 +229,7 @@ export default function TripDetailPage() {
                     className={`rounded-lg py-2 font-mono text-sm font-medium tabular transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
                       ${
                         isTaken
-                          ? 'cursor-not-allowed bg-slate-100 text-slate-300'
+                          ? 'cursor-not-allowed bg-slate-100 text-slate-500'
                           : isSelected
                             ? 'bg-brand-600 text-white'
                             : 'border border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100'

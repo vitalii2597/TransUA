@@ -51,6 +51,7 @@ model User {
   createdAt     DateTime @default(now())
 
   refreshTokens RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
   bookings      Booking[]
   vehicles      Vehicle[]
   driverTrips   Trip[]        @relation("DriverTrips")
@@ -154,9 +155,21 @@ model RefreshToken {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token     String   @unique
+  tokenHash String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+// Single-use, short-lived (1h). Like RefreshToken, only the SHA-256 of the emailed
+// token is stored, so a leaked DB can't be turned into account takeovers.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 }
 
 enum ParcelStatus {
@@ -195,4 +208,22 @@ model ParcelStatusLog {
   location  String?
   note      String?
   loggedAt  DateTime     @default(now())
+}
+
+// Published Ukraine <-> Norway courier+passenger cycle (no per-seat booking).
+// Only parcelsDate is required to create a run — the other four dates follow
+// a fixed offset from it and are auto-derived unless explicitly overridden.
+model ScheduleRun {
+  id               String   @id @default(uuid())
+  month            String // ISO yyyy-mm, section grouping on the public page
+  number           Int
+  parcelsDate      DateTime
+  parcelsCutoff    DateTime
+  passengersDate   DateTime
+  destinationStart DateTime
+  destinationEnd   DateTime
+  returnDate       DateTime
+  createdAt        DateTime @default(now())
+
+  @@unique([month, number])
 }

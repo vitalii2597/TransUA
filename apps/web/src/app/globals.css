@@ -53,13 +53,12 @@
 }
 
 /* ── Signature: the route line draws itself in on load ── */
-@keyframes route-draw {
-  from { stroke-dashoffset: var(--route-len, 300); }
-  to   { stroke-dashoffset: 0; }
+@keyframes line-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
 }
-.route-draw {
-  stroke-dasharray: var(--route-len, 300);
-  animation: route-draw 1.1s cubic-bezier(0.65, 0, 0.35, 1) 0.15s both;
+.line-grow {
+  animation: line-grow 1.1s cubic-bezier(0.65, 0, 0.35, 1) 0.15s both;
 }
 
 /* ── Signature animation: the Sprinter drives the route ── */
@@ -129,5 +128,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .route-draw { stroke-dashoffset: 0; }
+  .line-grow { transform: scaleX(1); }
 }

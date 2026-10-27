@@ -1,28 +1,34 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { TripStatus } from '@prisma/client';
+import { Prisma, TripStatus } from '@prisma/client';
 
 @Injectable()
 export class TripsService {
   constructor(private prisma: PrismaService) {}
 
   async search(from: string, to: string, date: string, seats: number) {
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
+    const where: Prisma.TripWhereInput = { status: TripStatus.SCHEDULED };
+    if (from) where.fromCity = { contains: from, mode: 'insensitive' };
+    if (to) where.toCity = { contains: to, mode: 'insensitive' };
+
+    if (date) {
+      const dayStart = new Date(date);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(date);
+      dayEnd.setHours(23, 59, 59, 999);
+      where.departureAt = { gte: dayStart, lte: dayEnd };
+    } else {
+      // No date given → timetable view: every upcoming departure from now on.
+      where.departureAt = { gte: new Date() };
+    }
 
     const trips = await this.prisma.trip.findMany({
-      where: {
-        fromCity: { contains: from, mode: 'insensitive' },
-        toCity: { contains: to, mode: 'insensitive' },
-        departureAt: { gte: dayStart, lte: dayEnd },
-        status: TripStatus.SCHEDULED,
-      },
+      where,
       include: {
         _count: { select: { bookings: { where: { status: 'CONFIRMED' } } } },
       },
       orderBy: { departureAt: 'asc' },
+      take: 60,
     });
 
     return {

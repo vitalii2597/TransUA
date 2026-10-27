@@ -18,12 +18,9 @@ test.describe('Booking flow', () => {
     await page.getByRole('button', { name: /реєстр/i }).click();
     await page.waitForURL(`${BASE}/dashboard`, { timeout: 10000 });
 
-    // Search trips
+    // View the trip schedule
     await page.goto(`${BASE}/trips`);
-    await page.waitForSelector('input');
-
-    // Check page loaded
-    await expect(page.locator('h1, h2').first()).toBeVisible();
+    await expect(page.locator('h1').first()).toBeVisible();
   });
 
   test('login with existing credentials', async ({ page }) => {
@@ -37,7 +34,7 @@ test.describe('Booking flow', () => {
 test.describe('Navigation', () => {
   test('home page loads', async ({ page }) => {
     await page.goto(BASE);
-    await expect(page.getByRole('link', { name: 'TransUA' })).toBeVisible();
+    await expect(page.getByRole('banner').getByRole('link', { name: 'TransUA' })).toBeVisible();
   });
 
   test('parcels page shows calculator', async ({ page }) => {

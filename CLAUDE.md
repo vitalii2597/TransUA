@@ -69,7 +69,10 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 
 ## Architecture Decisions
 - JWT access token (15m) + refresh token (7d) stored in cookies via `js-cookie`
-- Refresh tokens persisted in DB (`RefreshToken` table), deleted on logout
+- Refresh tokens persisted in DB (`RefreshToken` table) as a SHA-256 hash, never the raw token; deleted on logout
+- Password reset: `forgot-password` emails a random 1h single-use token (only its SHA-256 stored in `PasswordResetToken`; issuing a new one voids older unused ones). A successful reset deletes all the user's refresh tokens (logs out every session). Email goes through `MailService` (`apps/api/src/mail/`) via SendGrid's HTTP API when `SENDGRID_API_KEY` is set; without a key it logs an error only, unless `MAIL_LOG_TO_CONSOLE="true"` (local-dev opt-in, never on a deployed server) prints the email incl. reset link to the API console. The forgot-password lookup/token/email all run after the response is sent, so timing doesn't reveal whether an account exists
+- API sets Express `trust proxy` to 1 hop so the global throttler sees real client IPs behind Railway's proxy
+- `DELETE /users/me` fulfils GDPR erasure for real: wraps the full delete in a transaction that unlinks/removes owned vehicles, bookings (cascades passengers), payments, and parcels (cascades status logs) before deleting the user row — a bare `user.delete()` would FK-violate for any account with activity
 - All API responses: `{ data, error }` envelope; meta for pagination: `{ data, meta, error }`
 - Global `HttpExceptionFilter` → `{ error: { code, message } }`
 - Next.js `[locale]` routing — all pages under `app/[locale]/`
@@ -79,6 +82,8 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 - Navbar auth state re-checked on every route change via `usePathname()` dep in `useEffect`
 - Booking pages redirect to login immediately on load if not authenticated
 - Design system: see **Design System** section below (redesigned to "Nordic Blue" — minimal Scandinavian SaaS)
+- `/[locale]/trips` reflects how the route actually operates: a recurring Ukraine ↔ Norway courier+passenger cycle published a couple of months ahead (no per-seat/per-hour booking exists for it). The schedule is DB-backed (`ScheduleRun` model, see below) and managed at `/[locale]/admin/schedule-runs` — the public page fetches `GET /schedule-runs` on load. The `Trip`/booking/seat-picker model still exists and is unchanged (`GET /trips`, `/trips/:id`, seat picker) but is no longer surfaced through a public search page.
+- **ScheduleRun dates auto-derive from one date.** The corridor's 4 phases follow a fixed offset from the parcels departure date: cutoff = `parcelsDate - 1d`, passengers = `parcelsDate + 2d`, destination start = `passengers + 2d`, destination end = `start + 3d`, return = destination end. `POST /admin/schedule-runs` only requires `month`, `number`, `parcelsDate` — the rest are computed server-side (`AdminService.createScheduleRun`) unless explicitly overridden in the same request. `PATCH /admin/schedule-runs/:id` sets fields as given, no re-derivation (for correcting a typo'd date without recomputing the others).
 
 ---
 
@@ -112,7 +117,8 @@ model User {
   id, firstName, lastName, phone, email, passwordHash, role, preferredLang
   refreshTokens, bookings, vehicles, driverTrips, payments
 }
-model RefreshToken { id, userId, token, expiresAt }
+model RefreshToken { id, userId, tokenHash, expiresAt }  // tokenHash = SHA-256 of the signed JWT, never stored raw
+model PasswordResetToken { id, userId, tokenHash, expiresAt, usedAt? }  // SHA-256 of emailed token, 1h, single-use
 
 model Route {
   id, originCountry, destinationCountry, originCity, destinationCity, durationHours, active
@@ -132,6 +138,12 @@ model Booking {
   @@unique([tripId, seatNumber])
 }
 model BookingPassenger { id, bookingId, fullName, documentNumber?, phone? }
+
+model ScheduleRun {
+  id, month, number
+  parcelsDate, parcelsCutoff, passengersDate, destinationStart, destinationEnd, returnDate
+  @@unique([month, number])
+}
 ```
 
 ### Target schema (future phases)
@@ -167,14 +179,15 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 | POST | `/auth/login` | public | ✅ built |
 | POST | `/auth/refresh` | public | ✅ built |
 | POST | `/auth/logout` | JWT | ✅ built |
-| POST | `/auth/reset-password` | public | 🔲 Phase 4 |
+| POST | `/auth/forgot-password` | public | ✅ built (`{ email, locale? }` → always `{ sent: true }`, no account enumeration) |
+| POST | `/auth/reset-password` | public | ✅ built (`{ token, password }`; `INVALID_RESET_TOKEN` if bad/used/expired) |
 
 ### Users `/api/users`
 | Method | Endpoint | Auth | Status |
 |---|---|---|---|
 | GET | `/users/me` | JWT | ✅ built |
 | PATCH | `/users/me` | JWT | ✅ built |
-| DELETE | `/users/me` | JWT | 🔲 Phase 4 (GDPR) |
+| DELETE | `/users/me` | JWT | ✅ built (GDPR erasure — cascades bookings/payments/parcels/vehicles in one transaction, not just the user row) |
 | GET | `/users` | admin | 🔲 Phase 4 |
 | PATCH | `/users/:id/role` | admin | 🔲 Phase 4 |
 
@@ -188,10 +201,19 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 ### Trips `/api/trips`
 | Method | Endpoint | Auth | Status |
 |---|---|---|---|
-| GET | `/trips?from&to&date&seats` | public | ✅ built |
+| GET | `/trips?from&to&date&seats` | public | ✅ built (`date` optional → omitting it lists all upcoming SCHEDULED trips, capped at 60; used internally by the seat-picker flow via trip id, not exposed via a public search UI) |
 | GET | `/trips/:id` | public | ✅ built (returns takenSeats[]) |
 | POST | `/trips` | admin | 🔲 Phase 4 |
 | PATCH | `/trips/:id/status` | driver | 🔲 Phase 4 |
+
+### Schedule Runs `/api/schedule-runs`, `/api/admin/schedule-runs`
+| Method | Endpoint | Auth | Status |
+|---|---|---|---|
+| GET | `/schedule-runs` | public | ✅ built (feeds `/trips` public page, ordered by parcelsDate asc) |
+| GET | `/admin/schedule-runs` | admin | ✅ built (paginated) |
+| POST | `/admin/schedule-runs` | admin | ✅ built (`month`, `number`, `parcelsDate` required; other 4 dates auto-derived unless overridden) |
+| PATCH | `/admin/schedule-runs/:id` | admin | ✅ built (sets given fields as-is, no re-derivation) |
+| DELETE | `/admin/schedule-runs/:id` | admin | ✅ built |
 
 ### Bookings `/api/bookings`
 | Method | Endpoint | Auth | Status |
@@ -249,7 +271,8 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]` — Scandinavian hero with Sprinter van SVG, route cards, features strip, CTA
 - `/[locale]/login` — login form
 - `/[locale]/register` — register form
-- `/[locale]/trips` — search form + results (auth check on Book button)
+- `/[locale]/forgot-password` — request reset link (linked from login); `/[locale]/reset-password?token=` — set new password
+- `/[locale]/trips` — published schedule (2026-07 redesign, DB-backed since 2026-07-13): timetable grouped by month, fetched from `GET /schedule-runs`. Each "run" (Ukraine ↔ Norway courier + passenger cycle) is a vertical status timeline — parcel departure (+ drop-off cutoff) → passenger departure → days at destination → return — with done/current/upcoming states. No search form, no seats/price/booking on this page (see Architecture Decisions).
 - `/[locale]/trips/[id]` — 4-step booking: Seat → Passengers → Payment → Confirm (auth redirect on load)
 - `/[locale]/(dashboard)/dashboard` — profile with i18n labels + quick links to bookings/trips
 - `/[locale]/(dashboard)/bookings` — my bookings + cancel + PDF download + empty CTA
@@ -261,6 +284,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]/(admin)/admin/users` — user list + role management
 - `/[locale]/(admin)/admin/trips` — trip list + create + status management
 - `/[locale]/(admin)/admin/parcels` — parcel overview
+- `/[locale]/(admin)/admin/schedule-runs` — manage the published `/trips` schedule: list + create (month/number/parcelsDate only, other 4 dates auto-derived) + inline edit + delete
 - `/[locale]/privacy` — privacy policy (GDPR)
 - `/[locale]/terms` — terms of service
 
@@ -324,8 +348,8 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - Vehicle management API (CRUD, driver/admin roles)
 - `DELETE /users/me` — GDPR account deletion
 - `helmet()` security headers on all routes
-- `@nestjs/throttler` — global 30 req/min, stricter 5 req/min on `/auth/*`
-- E2E tests (Playwright): navigation + booking flow in `e2e/booking-flow.spec.ts`
+- `@nestjs/throttler` — bound globally via `APP_GUARD` at 200 req/min, stricter 5 req/min on `/auth/*`. `@SkipThrottle()` exempts authenticated role-gated controllers where bursty legitimate use is expected (`admin`, `driver`, `vehicles` — GPS pings, `users`); public/write endpoints flagged in a 2026-10-25 audit (`trips`, `routes`, `schedule-runs`, `bookings`, `parcels`) are not exempted
+- E2E tests (Playwright, 68 tests in `e2e/`): auth, booking flow, i18n, parcels, trips, UI, password reset. Run with `pnpm test:e2e` (reuses running dev servers). Needs `THROTTLE_DISABLED="true"` in `apps/api/.env`, otherwise the 5/min auth limit fails registration/login tests. `e2e/helpers/db.ts` writes reset tokens straight to the DB (the suite can't read emails). Only `@playwright/test` is a dependency — adding the bare `playwright` package at a different version breaks the runner ("did not expect test.describe() to be called here")
 - SEO: `sitemap.ts` (all locale × static paths), `robots.ts`, JSON-LD (TravelAgency) in layout
 - Privacy policy page `/[locale]/privacy`
 - Terms of service page `/[locale]/terms`
@@ -419,6 +443,8 @@ TWILIO_PHONE_NUMBER=""
 SENDGRID_API_KEY=""
 SENDGRID_FROM_EMAIL="noreply@transua.no"
 SENDGRID_FROM_NAME="TransUA"
+MAIL_LOG_TO_CONSOLE="true"   # local dev only: print emails (reset links) to console when no SendGrid key
+THROTTLE_DISABLED="true"     # local dev/e2e only: skip rate limiting; never on a deployed server
 
 # Deferred
 STRIPE_SECRET_KEY=""

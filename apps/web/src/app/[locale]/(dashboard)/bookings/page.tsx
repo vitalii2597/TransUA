@@ -133,18 +133,18 @@ export default function BookingsPage() {
                     </span>
                   </div>
                   {(b.pickupAddress || b.dropoffAddress) && (
-                    <div className="mt-1 space-y-0.5 text-xs text-slate-400">
+                    <div className="mt-1 space-y-0.5 text-xs text-slate-500">
                       {b.pickupAddress && <p>Pickup: {b.pickupAddress}</p>}
                       {b.dropoffAddress && <p>Dropoff: {b.dropoffAddress}</p>}
                       {b.luggageKg ? <p>Luggage: {b.luggageKg} kg</p> : null}
                     </div>
                   )}
                   {b.passengers && b.passengers.length > 0 && (
-                    <div className="mt-1 text-xs text-slate-400">
+                    <div className="mt-1 text-xs text-slate-500">
                       Passengers: {b.passengers.map((p) => p.fullName).join(', ')}
                     </div>
                   )}
-                  <p className="mt-1 text-xs text-slate-400">
+                  <p className="mt-1 text-xs text-slate-500">
                     {t('bookingRef')}: <span className="font-mono tabular">{b.id.slice(0, 8).toUpperCase()}</span>
                   </p>
                 </div>

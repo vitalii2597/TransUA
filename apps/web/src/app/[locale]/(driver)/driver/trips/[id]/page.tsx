@@ -144,11 +144,11 @@ export default function DriverTripDetailPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-ink">{b.passengerName}</p>
                   <p className="font-mono text-sm tabular text-slate-500">{b.user.phone}</p>
-                  {b.pickupAddress && <p className="mt-0.5 text-xs text-slate-400">↑ {b.pickupAddress}</p>}
-                  {b.dropoffAddress && <p className="text-xs text-slate-400">↓ {b.dropoffAddress}</p>}
-                  {b.luggageKg ? <p className="text-xs text-slate-400">Luggage: {b.luggageKg} kg</p> : null}
+                  {b.pickupAddress && <p className="mt-0.5 text-xs text-slate-500">↑ {b.pickupAddress}</p>}
+                  {b.dropoffAddress && <p className="text-xs text-slate-500">↓ {b.dropoffAddress}</p>}
+                  {b.luggageKg ? <p className="text-xs text-slate-500">Luggage: {b.luggageKg} kg</p> : null}
                   {b.passengers.length > 0 && (
-                    <div className="mt-1 text-xs text-slate-400">
+                    <div className="mt-1 text-xs text-slate-500">
                       +{b.passengers.map((p) => p.fullName).join(', ')}
                     </div>
                   )}
