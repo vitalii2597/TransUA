@@ -70,6 +70,7 @@ cd apps/api && npx prisma studio                  # visual DB browser at :5555
 ## Architecture Decisions
 - JWT access token (15m) + refresh token (7d) stored in cookies via `js-cookie`
 - Refresh tokens persisted in DB (`RefreshToken` table) as a SHA-256 hash, never the raw token; deleted on logout
+- Password reset: `forgot-password` emails a random 1h single-use token (only its SHA-256 stored in `PasswordResetToken`; issuing a new one voids older unused ones). A successful reset deletes all the user's refresh tokens (logs out every session). Email goes through `MailService` (`apps/api/src/mail/`) via SendGrid's HTTP API when `SENDGRID_API_KEY` is set; without a key, dev logs the email (incl. reset link) to the API console, production logs an error only
 - `DELETE /users/me` fulfils GDPR erasure for real: wraps the full delete in a transaction that unlinks/removes owned vehicles, bookings (cascades passengers), payments, and parcels (cascades status logs) before deleting the user row — a bare `user.delete()` would FK-violate for any account with activity
 - All API responses: `{ data, error }` envelope; meta for pagination: `{ data, meta, error }`
 - Global `HttpExceptionFilter` → `{ error: { code, message } }`
@@ -116,6 +117,7 @@ model User {
   refreshTokens, bookings, vehicles, driverTrips, payments
 }
 model RefreshToken { id, userId, tokenHash, expiresAt }  // tokenHash = SHA-256 of the signed JWT, never stored raw
+model PasswordResetToken { id, userId, tokenHash, expiresAt, usedAt? }  // SHA-256 of emailed token, 1h, single-use
 
 model Route {
   id, originCountry, destinationCountry, originCity, destinationCity, durationHours, active
@@ -176,7 +178,8 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 | POST | `/auth/login` | public | ✅ built |
 | POST | `/auth/refresh` | public | ✅ built |
 | POST | `/auth/logout` | JWT | ✅ built |
-| POST | `/auth/reset-password` | public | 🔲 Phase 4 |
+| POST | `/auth/forgot-password` | public | ✅ built (`{ email, locale? }` → always `{ sent: true }`, no account enumeration) |
+| POST | `/auth/reset-password` | public | ✅ built (`{ token, password }`; `INVALID_RESET_TOKEN` if bad/used/expired) |
 
 ### Users `/api/users`
 | Method | Endpoint | Auth | Status |
@@ -267,6 +270,7 @@ model Notification { id, userId, channel, subject, body, sent, sentAt }
 - `/[locale]` — Scandinavian hero with Sprinter van SVG, route cards, features strip, CTA
 - `/[locale]/login` — login form
 - `/[locale]/register` — register form
+- `/[locale]/forgot-password` — request reset link (linked from login); `/[locale]/reset-password?token=` — set new password
 - `/[locale]/trips` — published schedule (2026-07 redesign, DB-backed since 2026-07-13): timetable grouped by month, fetched from `GET /schedule-runs`. Each "run" (Ukraine ↔ Norway courier + passenger cycle) is a vertical status timeline — parcel departure (+ drop-off cutoff) → passenger departure → days at destination → return — with done/current/upcoming states. No search form, no seats/price/booking on this page (see Architecture Decisions).
 - `/[locale]/trips/[id]` — 4-step booking: Seat → Passengers → Payment → Confirm (auth redirect on load)
 - `/[locale]/(dashboard)/dashboard` — profile with i18n labels + quick links to bookings/trips

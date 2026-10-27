@@ -89,6 +89,15 @@ export default function LoginPage() {
               </div>
             </Field>
 
+            <div className="-mt-1 text-right">
+              <Link
+                href={`/${locale}/forgot-password`}
+                className="text-sm font-medium text-brand-600 hover:text-brand-700"
+              >
+                {t('forgotPassword')}
+              </Link>
+            </div>
+
             <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
               {isSubmitting ? tc('loading') : t('login')}
             </Button>
